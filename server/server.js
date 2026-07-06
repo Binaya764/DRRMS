@@ -5,6 +5,8 @@ const PORT = 3000;
 
 const allocationRouter = require("./routes/allocationRouter");
 const resourceRouter = require("./routes/resourceRouter");
+const disasterRouter = require("./routes/disasterRouter");
+const shelterRouter = require("./routes/shelterRouter");
 
 const pool = require("./config/db");
 pool.query('SELECT NOW()')
@@ -13,6 +15,8 @@ pool.query('SELECT NOW()')
 
 server.use("/api", allocationRouterRouter);
 server.use("/api", resourceRouter);
+server.use("/api", disasterRouter);
+server.use("/api", shelterRouter);
 
 
 server.listen(PORT,()=>{
