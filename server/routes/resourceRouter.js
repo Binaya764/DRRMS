@@ -2,4 +2,4 @@ const {Router} = require("express");
 const resourceRouter = Router();
 const resourceController = require("../controllers/resourceController");
 
-resourceRouter.get("/",resourceController.getResource);
+resourceRouter.get("/resource",resourceController.getResource);
