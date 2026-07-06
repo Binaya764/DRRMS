@@ -1,3 +1,4 @@
+const client = require("../config/db");
 async function postAllocation(req,res){
 
     try {

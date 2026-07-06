@@ -1,3 +1,4 @@
+const pool = require("../config/db");
 async function getInfo(req,res){
     try {
     const result = await pool.query(
