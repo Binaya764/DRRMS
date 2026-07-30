@@ -1,8 +1,9 @@
-const {Router} = require("express");
+const { Router } = require("express");
 const shelterRouter = Router();
-const shelterController = require("../controllers/shelterController");
+const { getInfo, updateInfo, addCamp } = require("../controllers/shelterController");
 
-shelterRouter.get("/shelter", shelterController.getInfo);
-shelterRouter.post("/shelter/:id",shelterController.updateInfo);
+shelterRouter.get("/shelter", getInfo);
+shelterRouter.post("/shelter", addCamp);
+shelterRouter.post("/shelter/:id", updateInfo);
 
 module.exports = shelterRouter;

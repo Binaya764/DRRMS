@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, CircularProgress, LinearProgress,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Chip,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Chip,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 
@@ -16,6 +17,12 @@ export default function Camps() {
   const [population, setPopulation] = useState("");
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState("");
+
+  // Add camp state
+  const [addOpen, setAddOpen]   = useState(false);
+  const [addForm, setAddForm]   = useState({ camp_name: "", location: "", capacity: "", contact_number: "", status: "Active" });
+  const [addError, setAddError] = useState("");
+  const [addSaving, setAddSaving] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -35,6 +42,15 @@ export default function Camps() {
       .finally(() => setSaving(false));
   };
 
+  const handleAddCamp = () => {
+    if (!addForm.camp_name) { setAddError("Camp name is required."); return; }
+    setAddSaving(true);
+    axios.post("/api/shelter", addForm)
+      .then(() => { setAddOpen(false); setAddForm({ camp_name: "", location: "", capacity: "", contact_number: "", status: "Active" }); setAddError(""); load(); })
+      .catch(err => setAddError(err.response?.data?.error || "Failed to save."))
+      .finally(() => setAddSaving(false));
+  };
+
   if (loading) return (
     <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
       <CircularProgress />
@@ -43,9 +59,12 @@ export default function Camps() {
 
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700}>Camps & Shelters</Typography>
-        <Typography color="text.secondary">{rows.length} camp{rows.length !== 1 ? "s" : ""} registered</Typography>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>Camps & Shelters</Typography>
+          <Typography color="text.secondary">{rows.length} camp{rows.length !== 1 ? "s" : ""} registered</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>Add Camp</Button>
       </Box>
 
       <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
@@ -92,6 +111,26 @@ export default function Camps() {
         </TableContainer>
       </Paper>
 
+      {/* Add Camp Dialog */}
+      <Dialog open={addOpen} onClose={() => { setAddOpen(false); setAddError(""); }} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Camp</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            {addError && <Typography color="error" variant="body2">{addError}</Typography>}
+            <TextField label="Camp Name" name="camp_name" value={addForm.camp_name} onChange={e => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
+            <TextField label="Location" name="location" value={addForm.location} onChange={e => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
+            <TextField label="Capacity" name="capacity" type="number" value={addForm.capacity} onChange={e => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
+            <TextField label="Contact Number" name="contact_number" value={addForm.contact_number} onChange={e => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
+            <TextField label="Status" name="status" value={addForm.status} onChange={e => setAddForm({ ...addForm, [e.target.name]: e.target.value })} placeholder="Active / Full / Closed" />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button variant="outlined" onClick={() => { setAddOpen(false); setAddError(""); }}>Cancel</Button>
+          <Button variant="contained" onClick={handleAddCamp} disabled={addSaving}>{addSaving ? "Saving..." : "Save"}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Update Population Dialog */}
       <Dialog open={!!selected} onClose={() => setSelected(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Update Population — {selected?.camp_name}</DialogTitle>
         <DialogContent>
