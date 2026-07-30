@@ -1,40 +1,11 @@
 import { useEffect, useState } from "react";
-import {
-  Box, Typography, Grid, Card, CardContent,
-  CircularProgress, Chip, Divider,
-} from "@mui/material";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
-import HolidayVillageIcon from "@mui/icons-material/HolidayVillage";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import axios from "axios";
 
-function StatCard({ label, value, icon, color }) {
-  return (
-    <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-      <CardContent sx={{ display: "flex", alignItems: "center", gap: 2, p: 2.5 }}>
-        <Box
-          sx={{
-            width: 52, height: 52, borderRadius: 2,
-            bgcolor: `${color}18`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <Box sx={{ color, display: "flex" }}>{icon}</Box>
-        </Box>
-        <Box>
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
-            {label}
-          </Typography>
-          <Typography variant="h4" fontWeight={700} color="text.primary" lineHeight={1.2}>
-            {value ?? "—"}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-}
+import { Box, Typography, CircularProgress, Grid } from "@mui/material";
+
+import StatCards from "../components/DashboardComponents/StatCard";
+import RecentDisasters from "../components/DashboardComponents/RecentDisasters";
+import QuickSummary from "../components/DashboardComponents/QuickSummary";
 
 export default function Dashboard() {
   const [disasters, setDisasters] = useState([]);
@@ -59,70 +30,112 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Box p={4} display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
-  const totalOccupancy = shelters.reduce((s, x) => s + (x.current_occupancy || 0), 0);
+  const totalOccupancy = shelters.reduce(
+    (sum, shelter) => sum + (shelter.current_occupancy || 0),
+    0,
+  );
+
+  const totalCapacity = shelters.reduce(
+    (sum, shelter) => sum + (shelter.capacity || 0),
+    0,
+  );
 
   return (
-    <Box p={4}>
-      <Box mb={4}>
-        <Typography variant="h5" fontWeight={700}>Dashboard</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Overview of active operations
+    <Box
+      sx={{
+        width: "100%",
+        p: 3,
+      }}
+    >
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight={700}>
+          Dashboard
+        </Typography>
+
+        <Typography color="text.secondary">
+          Disaster Relief Resource Management System
         </Typography>
       </Box>
 
-      {/* Stat cards */}
-      <Grid container spacing={2.5} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Active Disasters" value={disasters.length}
-            icon={<WarningAmberIcon />} color="#ef4444" />
+      {/* Statistics */}
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCards
+            title="Active Disasters"
+            value={disasters.length}
+            subtitle="Currently Active"
+            icon="disaster"
+            color="#ef4444"
+          />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Resources Available" value={resources.length}
-            icon={<VolunteerActivismIcon />} color="#2563eb" />
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCards
+            title="Resources"
+            value={resources.length}
+            subtitle="Available Resources"
+            icon="resource"
+            color="#1976d2"
+          />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Shelters" value={shelters.length}
-            icon={<HolidayVillageIcon />} color="#16a34a" />
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCards
+            title="Shelters"
+            value={shelters.length}
+            subtitle="Registered Camps"
+            icon="shelter"
+            color="#2e7d32"
+          />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Total Occupancy" value={totalOccupancy}
-            icon={<PeopleAltIcon />} color="#d97706" />
+
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCards
+            title="Occupancy"
+            value={totalOccupancy}
+            subtitle={`Capacity: ${totalCapacity}`}
+            icon="occupancy"
+            color="#ed6c02"
+          />
         </Grid>
       </Grid>
 
-      {/* Recent disasters */}
-      <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" fontWeight={700} mb={2}>
-            Recent Active Disasters
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          {disasters.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">No active disasters.</Typography>
-          ) : (
-            disasters.slice(0, 5).map((d, i) => (
-              <Box key={d.event_id}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" py={1.2}>
-                  <Box>
-                    <Typography fontWeight={600} variant="body1">{d.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {d.type} · {d.location}
-                    </Typography>
-                  </Box>
-                  <Chip label="Active" color="error" size="small" sx={{ fontWeight: 600 }} />
-                </Box>
-                {i < Math.min(disasters.length, 5) - 1 && <Divider />}
-              </Box>
-            ))
-          )}
-        </CardContent>
-      </Card>
+      {/* Bottom Section */}
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          mt: 2,
+        }}
+      >
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <RecentDisasters disasters={disasters} />
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <QuickSummary
+            disasters={disasters.length}
+            resources={resources.length}
+            shelters={shelters.length}
+            occupancy={totalOccupancy}
+            capacity={totalCapacity}
+          />
+        </Grid>
+      </Grid>
     </Box>
   );
 }

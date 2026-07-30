@@ -29,16 +29,16 @@ export default function DashboardLayouts() {
         }}
       >
         <Routes>
-          <Route path="/"               element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/disaster-areas" element={<DisasterAreas />} />
-          <Route path="/camps"          element={<Camps />} />
-          <Route path="/resources"      element={<Resources />} />
-          <Route path="/inventory"      element={<Inventory />} />
-          <Route path="/victims"        element={<Victims />} />
-          <Route path="/requests"       element={<Requests />} />
-          <Route path="/donations"      element={<Donations />} />
-          <Route path="/distribution"   element={<Distribution />} />
-          <Route path="/deployments"    element={<Deployments />} />
+          <Route path="/camps" element={<Camps />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/victims" element={<Victims />} />
+          <Route path="/requests" element={<Requests />} />
+          <Route path="/donations" element={<Donations />} />
+          <Route path="/distribution" element={<Distribution />} />
+          <Route path="/deployments" element={<Deployments />} />
         </Routes>
       </Box>
     </Box>
