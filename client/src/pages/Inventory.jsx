@@ -80,8 +80,10 @@ export default function Inventory() {
               <TextField label="Unit" name="unit" value={form.unit} onChange={handleChange} placeholder="kg, pcs, L" />
             </Stack>
             <TextField label="Storage Location" name="location" value={form.location} onChange={handleChange} />
-            <TextField label="Expiry Date" name="expires" type="date" value={form.expires}
-              onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Expiry Date</Typography>
+              <TextField name="expires" type="date" value={form.expires} onChange={handleChange} />
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

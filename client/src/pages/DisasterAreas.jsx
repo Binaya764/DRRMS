@@ -102,8 +102,10 @@ export default function DisasterAreas() {
             <TextField label="Type" name="type" value={form.type} onChange={handleChange}
               placeholder="e.g. Flood, Earthquake" />
             <TextField label="Location" name="location" value={form.location} onChange={handleChange} />
-            <TextField label="Start Date" name="start_date" type="date" value={form.start_date}
-              onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Start Date</Typography>
+              <TextField name="start_date" type="date" value={form.start_date} onChange={handleChange} />
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

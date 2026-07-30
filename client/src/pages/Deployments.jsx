@@ -72,8 +72,10 @@ export default function Deployments() {
             <TextField label="Team / Unit Name" name="team" value={form.team} onChange={handleChange} />
             <TextField label="Deployment Location" name="location" value={form.location} onChange={handleChange} />
             <TextField label="Task / Mission" name="task" value={form.task} onChange={handleChange} multiline rows={2} />
-            <TextField label="Deployed On" name="deployed_on" type="date" value={form.deployed_on}
-              onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Deployed On</Typography>
+              <TextField name="deployed_on" type="date" value={form.deployed_on} onChange={handleChange} />
+            </Box>
             <TextField label="Status" name="status" value={form.status} onChange={handleChange}
               placeholder="Active / Completed / Recalled" />
           </Stack>

@@ -76,8 +76,10 @@ export default function Distribution() {
               <TextField label="Quantity" name="quantity" type="number" value={form.quantity} onChange={handleChange} />
               <TextField label="Unit" name="unit" value={form.unit} onChange={handleChange} placeholder="kg, pcs, L" />
             </Stack>
-            <TextField label="Date" name="date" type="date" value={form.date}
-              onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Date</Typography>
+              <TextField name="date" type="date" value={form.date} onChange={handleChange} />
+            </Box>
             <TextField label="Distributed By" name="distributed_by" value={form.distributed_by} onChange={handleChange} />
           </Stack>
         </DialogContent>
