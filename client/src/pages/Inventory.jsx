@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Button, Table, TableBody, TableCell, TableContainer,
+  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip, Typography, CircularProgress,
+  DialogActions, TextField, Stack, Chip, CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import PageHeader from "../components/PageHeader";
 
 const stockColor = (q) => Number(q) > 100 ? "success" : Number(q) > 50 ? "warning" : "error";
 const stockLabel = (q) => Number(q) > 100 ? "Sufficient" : Number(q) > 50 ? "Moderate" : "Low";
@@ -25,7 +24,6 @@ export default function Inventory() {
   };
 
   useEffect(() => { load(); }, []);
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = () => {
@@ -37,39 +35,46 @@ export default function Inventory() {
       .finally(() => setSaving(false));
   };
 
-  return (
-    <Box>
-      <PageHeader title="Inventory" subtitle={`${rows.length} resource${rows.length !== 1 ? "s" : ""} tracked`}
-        action={<Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Resource</Button>} />
+  if (loading) return (
+    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
+  );
 
-      {loading ? <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box> : (
-        <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {["Resource Name", "Category", "Quantity", "Availability"].map(h => <TableCell key={h}>{h}</TableCell>)}
+  return (
+    <Box sx={{ width: "100%", p: 3 }}>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>Inventory</Typography>
+          <Typography color="text.secondary">{rows.length} resource{rows.length !== 1 ? "s" : ""} tracked</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Resource</Button>
+      </Box>
+
+      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {["Resource Name", "Category", "Quantity", "Availability"].map(h => <TableCell key={h}>{h}</TableCell>)}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: "text.secondary" }}>No inventory items found.</TableCell></TableRow>
+              ) : rows.map(row => (
+                <TableRow key={row.resource_id} hover>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.resource_name}</TableCell>
+                  <TableCell>{row.category}</TableCell>
+                  <TableCell align="right">{row.quantity}</TableCell>
+                  <TableCell><Chip label={stockLabel(row.quantity)} color={stockColor(row.quantity)} size="small" /></TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} align="center" sx={{ py: 5, color: "#9ca3af" }}>No inventory items found.</TableCell></TableRow>
-                ) : rows.map(row => (
-                  <TableRow key={row.resource_id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{row.resource_name}</TableCell>
-                    <TableCell>{row.category}</TableCell>
-                    <TableCell align="right">{row.quantity}</TableCell>
-                    <TableCell><Chip label={stockLabel(row.quantity)} color={stockColor(row.quantity)} size="small" /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Resource</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Resource</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}

@@ -6,17 +6,16 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
-import PageHeader from "../components/PageHeader";
 
 const statusColor = (s) => ({ active: "success", full: "error", closed: "default" }[s?.toLowerCase()] || "info");
 
 export default function Camps() {
-  const [rows, setRows]       = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [rows, setRows]         = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [selected, setSelected] = useState(null);
   const [population, setPopulation] = useState("");
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState("");
 
   const load = () => {
     setLoading(true);
@@ -36,58 +35,65 @@ export default function Camps() {
       .finally(() => setSaving(false));
   };
 
-  return (
-    <Box>
-      <PageHeader title="Camps / Shelters" subtitle={`${rows.length} camp${rows.length !== 1 ? "s" : ""} registered`} />
+  if (loading) return (
+    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <CircularProgress />
+    </Box>
+  );
 
-      {loading ? <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box> : (
-        <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {["Camp Name", "Location", "Capacity", "Population", "Fill %", "Status", ""].map((h, i) => (
-                    <TableCell key={i}>{h}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5, color: "#9ca3af" }}>No camps found.</TableCell></TableRow>
-                ) : rows.map(row => {
-                  const pct = row.capacity ? Math.min(100, Math.round((row.current_population / row.capacity) * 100)) : 0;
-                  return (
-                    <TableRow key={row.camp_id} hover>
-                      <TableCell sx={{ fontWeight: 600 }}>{row.camp_name}</TableCell>
-                      <TableCell>{row.location}</TableCell>
-                      <TableCell align="right">{row.capacity}</TableCell>
-                      <TableCell align="right">{row.current_population}</TableCell>
-                      <TableCell sx={{ minWidth: 150 }}>
-                        <Box display="flex" alignItems="center" gap={1.5}>
-                          <LinearProgress variant="determinate" value={pct}
-                            color={pct > 90 ? "error" : pct > 70 ? "warning" : "success"}
-                            sx={{ flex: 1, height: 8, borderRadius: 4 }} />
-                          <Typography variant="caption" fontWeight={600} sx={{ minWidth: 32 }}>{pct}%</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell><Chip label={row.status || "Active"} color={statusColor(row.status)} size="small" /></TableCell>
-                      <TableCell>
-                        <Button size="small" startIcon={<EditIcon fontSize="small" />}
-                          onClick={() => openEdit(row)} variant="outlined" sx={{ borderRadius: 2 }}>
-                          Update
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+  return (
+    <Box sx={{ width: "100%", p: 3 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight={700}>Camps & Shelters</Typography>
+        <Typography color="text.secondary">{rows.length} camp{rows.length !== 1 ? "s" : ""} registered</Typography>
+      </Box>
+
+      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {["Camp Name", "Location", "Capacity", "Population", "Fill %", "Status", ""].map((h, i) => (
+                  <TableCell key={i}>{h}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6, color: "text.secondary" }}>No camps found.</TableCell></TableRow>
+              ) : rows.map(row => {
+                const pct = row.capacity ? Math.min(100, Math.round((row.current_population / row.capacity) * 100)) : 0;
+                return (
+                  <TableRow key={row.camp_id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.camp_name}</TableCell>
+                    <TableCell>{row.location}</TableCell>
+                    <TableCell align="right">{row.capacity}</TableCell>
+                    <TableCell align="right">{row.current_population}</TableCell>
+                    <TableCell sx={{ minWidth: 150 }}>
+                      <Box display="flex" alignItems="center" gap={1.5}>
+                        <LinearProgress variant="determinate" value={pct}
+                          color={pct > 90 ? "error" : pct > 70 ? "warning" : "success"}
+                          sx={{ flex: 1, height: 8, borderRadius: 4 }} />
+                        <Typography variant="caption" fontWeight={600} sx={{ minWidth: 32 }}>{pct}%</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell><Chip label={row.status || "Active"} color={statusColor(row.status)} size="small" /></TableCell>
+                    <TableCell>
+                      <Button size="small" startIcon={<EditIcon fontSize="small" />}
+                        onClick={() => openEdit(row)} variant="outlined" sx={{ borderRadius: 2 }}>
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={!!selected} onClose={() => setSelected(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Update Population — {selected?.camp_name}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Update Population — {selected?.camp_name}</DialogTitle>
         <DialogContent>
           <Box mt={1}>
             {error && <Typography color="error" variant="body2" mb={1}>{error}</Typography>}

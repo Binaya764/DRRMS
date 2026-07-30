@@ -6,10 +6,9 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import PageHeader from "../components/PageHeader";
 
-const empty = { disaster_name: "", disaster_type: "", location: "", severity: "Medium" };
 const severityColor = (s) => ({ Low: "info", Medium: "warning", High: "error", Critical: "error" }[s] || "default");
+const empty = { disaster_name: "", disaster_type: "", location: "", severity: "Medium" };
 
 export default function DisasterAreas() {
   const [rows, setRows]       = useState([]);
@@ -37,43 +36,54 @@ export default function DisasterAreas() {
       .finally(() => setSaving(false));
   };
 
-  return (
-    <Box>
-      <PageHeader
-        title="Disaster Areas"
-        subtitle={`${rows.length} active event${rows.length !== 1 ? "s" : ""}`}
-        action={<Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Disaster</Button>}
-      />
+  if (loading) return (
+    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <CircularProgress />
+    </Box>
+  );
 
-      {loading ? <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box> : (
-        <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {["Name", "Type", "Location", "Severity", "Status"].map(h => <TableCell key={h}>{h}</TableCell>)}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5, color: "#9ca3af" }}>No disaster records found.</TableCell></TableRow>
-                ) : rows.map(row => (
-                  <TableRow key={row.area_id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{row.disaster_name}</TableCell>
-                    <TableCell>{row.disaster_type}</TableCell>
-                    <TableCell>{row.location}</TableCell>
-                    <TableCell><Chip label={row.severity} color={severityColor(row.severity)} size="small" /></TableCell>
-                    <TableCell><Chip label={row.status || "Active"} color="error" size="small" /></TableCell>
-                  </TableRow>
+  return (
+    <Box sx={{ width: "100%", p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>Disaster Areas</Typography>
+          <Typography color="text.secondary">{rows.length} active event{rows.length !== 1 ? "s" : ""}</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          Add Disaster
+        </Button>
+      </Box>
+
+      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {["Disaster Name", "Type", "Location", "Severity", "Status"].map(h => (
+                  <TableCell key={h}>{h}</TableCell>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: "text.secondary" }}>No disaster records found.</TableCell></TableRow>
+              ) : rows.map(row => (
+                <TableRow key={row.area_id} hover>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.disaster_name}</TableCell>
+                  <TableCell>{row.disaster_type}</TableCell>
+                  <TableCell>{row.location}</TableCell>
+                  <TableCell><Chip label={row.severity} color={severityColor(row.severity)} size="small" /></TableCell>
+                  <TableCell><Chip label={row.status || "Active"} color="error" size="small" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Disaster</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Disaster</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}

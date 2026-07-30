@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Button, Table, TableBody, TableCell, TableContainer,
+  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Typography, CircularProgress,
+  DialogActions, TextField, Stack, CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
-import PageHeader from "../components/PageHeader";
 
 export default function Donations() {
   const [rows, setRows]       = useState([]);
@@ -22,7 +21,6 @@ export default function Donations() {
   };
 
   useEffect(() => { load(); }, []);
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = () => {
@@ -34,41 +32,48 @@ export default function Donations() {
       .finally(() => setSaving(false));
   };
 
-  return (
-    <Box>
-      <PageHeader title="Donations" subtitle={`${rows.length} donation${rows.length !== 1 ? "s" : ""} recorded`}
-        action={<Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Donation</Button>} />
+  if (loading) return (
+    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
+  );
 
-      {loading ? <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box> : (
-        <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {["ID", "Amount", "Cash Amount", "Currency", "Date", "Remarks"].map(h => <TableCell key={h}>{h}</TableCell>)}
+  return (
+    <Box sx={{ width: "100%", p: 3 }}>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>Donations</Typography>
+          <Typography color="text.secondary">{rows.length} donation{rows.length !== 1 ? "s" : ""} recorded</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Donation</Button>
+      </Box>
+
+      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                {["ID", "Amount", "Cash Amount", "Currency", "Date", "Remarks"].map(h => <TableCell key={h}>{h}</TableCell>)}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>No donations recorded.</TableCell></TableRow>
+              ) : rows.map(row => (
+                <TableRow key={row.donation_id} hover>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.donation_id}</TableCell>
+                  <TableCell align="right">{row.amount}</TableCell>
+                  <TableCell align="right">{row.cash_amount}</TableCell>
+                  <TableCell>{row.currency}</TableCell>
+                  <TableCell>{row.donation_date?.slice(0, 10)}</TableCell>
+                  <TableCell>{row.remarks}</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5, color: "#9ca3af" }}>No donations recorded.</TableCell></TableRow>
-                ) : rows.map(row => (
-                  <TableRow key={row.donation_id} hover>
-                    <TableCell>{row.donation_id}</TableCell>
-                    <TableCell align="right">{row.amount}</TableCell>
-                    <TableCell align="right">{row.cash_amount}</TableCell>
-                    <TableCell>{row.currency}</TableCell>
-                    <TableCell>{row.donation_date?.slice(0, 10)}</TableCell>
-                    <TableCell>{row.remarks}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      )}
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Donation</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Donation</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
