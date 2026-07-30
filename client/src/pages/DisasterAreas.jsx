@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper, CircularProgress, Chip,
+  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, CircularProgress, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
+import PageHeader from "../components/PageHeader";
 
 const empty = { name: "", type: "", location: "", start_date: "" };
+
+const headSx = { fontWeight: 700, bgcolor: "#f8fafc", color: "#374151", fontSize: 13 };
 
 export default function DisasterAreas() {
   const [rows, setRows] = useState([]);
@@ -30,8 +34,7 @@ export default function DisasterAreas() {
 
   const handleSubmit = () => {
     if (!form.name || !form.type || !form.location || !form.start_date) {
-      setError("All fields are required.");
-      return;
+      setError("All fields are required."); return;
     }
     setSaving(true);
     axios.post("/api/disaster", form)
@@ -41,48 +44,57 @@ export default function DisasterAreas() {
   };
 
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Disaster Areas</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>Add Disaster</Button>
-      </Box>
+    <Box p={4}>
+      <PageHeader
+        title="Disaster Areas"
+        subtitle={`${rows.length} active event${rows.length !== 1 ? "s" : ""}`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Add Disaster
+          </Button>
+        }
+      />
 
-      {loading ? <CircularProgress /> : (
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Start Date</TableCell>
-                <TableCell>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
+      {loading ? (
+        <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box>
+      ) : (
+        <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5} align="center">No records found.</TableCell>
+                  {["Name", "Type", "Location", "Start Date", "Status"].map((h) => (
+                    <TableCell key={h} sx={headSx}>{h}</TableCell>
+                  ))}
                 </TableRow>
-              ) : rows.map((row) => (
-                <TableRow key={row.event_id} hover>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.start_date?.slice(0, 10)}</TableCell>
-                  <TableCell>
-                    <Chip label={row.status || "Active"} color="error" size="small" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 5, color: "#9ca3af" }}>
+                      No disaster records found.
+                    </TableCell>
+                  </TableRow>
+                ) : rows.map((row) => (
+                  <TableRow key={row.event_id} hover sx={{ "&:last-child td": { border: 0 } }}>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.name}</TableCell>
+                    <TableCell>{row.type}</TableCell>
+                    <TableCell>{row.location}</TableCell>
+                    <TableCell>{row.start_date?.slice(0, 10)}</TableCell>
+                    <TableCell>
+                      <Chip label={row.status || "Active"} color="error" size="small"
+                        sx={{ fontWeight: 600 }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
 
-      {/* Add Disaster Dialog */}
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Disaster</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Disaster</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
@@ -94,7 +106,7 @@ export default function DisasterAreas() {
               onChange={handleChange} InputLabelProps={{ shrink: true }} />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit} disabled={saving}>
             {saving ? "Saving..." : "Save"}

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  Box, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip,
+  DialogActions, TextField, Stack, Chip, Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import PageHeader from "../components/PageHeader";
 
-const COLUMNS = ["Name", "Age", "Gender", "Location", "Status", "Contact"];
+const headSx = { fontWeight: 700, bgcolor: "#f8fafc", color: "#374151", fontSize: 13 };
+const statusColor = (s) => ({ Displaced: "warning", Rescued: "success", Missing: "error" }[s] || "default");
 
 export default function Victims() {
   const [rows, setRows] = useState([]);
@@ -19,47 +22,51 @@ export default function Victims() {
     if (!form.name || !form.location) { setError("Name and location are required."); return; }
     setRows([...rows, { ...form, id: Date.now() }]);
     setForm({ name: "", age: "", gender: "", location: "", status: "Displaced", contact: "" });
-    setOpen(false);
-    setError("");
+    setOpen(false); setError("");
   };
 
-  const statusColor = (s) => ({ Displaced: "warning", Rescued: "success", Missing: "error" }[s] || "default");
-
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Victims</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>Add Victim</Button>
-      </Box>
+    <Box p={4}>
+      <PageHeader
+        title="Victims"
+        subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Add Victim
+          </Button>
+        }
+      />
 
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {COLUMNS.map((c) => <TableCell key={c}>{c}</TableCell>)}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.length === 0 ? (
+      <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={6} align="center">No victims recorded.</TableCell>
+                {["Name", "Age", "Gender", "Location", "Status", "Contact"].map((h) => (
+                  <TableCell key={h} sx={headSx}>{h}</TableCell>
+                ))}
               </TableRow>
-            ) : rows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>{row.age}</TableCell>
-                <TableCell>{row.gender}</TableCell>
-                <TableCell>{row.location}</TableCell>
-                <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" /></TableCell>
-                <TableCell>{row.contact}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5, color: "#9ca3af" }}>No victims recorded.</TableCell></TableRow>
+              ) : rows.map((row) => (
+                <TableRow key={row.id} hover sx={{ "&:last-child td": { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.name}</TableCell>
+                  <TableCell>{row.age}</TableCell>
+                  <TableCell>{row.gender}</TableCell>
+                  <TableCell>{row.location}</TableCell>
+                  <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" sx={{ fontWeight: 600 }} /></TableCell>
+                  <TableCell>{row.contact}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Victim</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Victim</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
@@ -69,12 +76,11 @@ export default function Victims() {
               <TextField label="Gender" name="gender" value={form.gender} onChange={handleChange} placeholder="Male / Female / Other" />
             </Stack>
             <TextField label="Last Known Location" name="location" value={form.location} onChange={handleChange} />
-            <TextField label="Status" name="status" value={form.status} onChange={handleChange}
-              placeholder="Displaced / Rescued / Missing" />
+            <TextField label="Status" name="status" value={form.status} onChange={handleChange} placeholder="Displaced / Rescued / Missing" />
             <TextField label="Contact Number" name="contact" value={form.contact} onChange={handleChange} />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>Save</Button>
         </DialogActions>

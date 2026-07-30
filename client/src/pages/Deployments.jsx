@@ -1,9 +1,14 @@
 import { useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  Box, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip,
+  DialogActions, TextField, Stack, Chip, Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import PageHeader from "../components/PageHeader";
+
+const headSx = { fontWeight: 700, bgcolor: "#f8fafc", color: "#374151", fontSize: 13 };
+const statusColor = (s) => ({ Active: "success", Completed: "info", Recalled: "warning" }[s] || "default");
 
 export default function Deployments() {
   const [rows, setRows] = useState([]);
@@ -17,48 +22,50 @@ export default function Deployments() {
     if (!form.team || !form.location || !form.task) { setError("Team, location and task are required."); return; }
     setRows([...rows, { ...form, id: Date.now() }]);
     setForm({ team: "", location: "", task: "", deployed_on: "", status: "Active" });
-    setOpen(false);
-    setError("");
+    setOpen(false); setError("");
   };
 
-  const statusColor = (s) => ({ Active: "success", Completed: "info", Recalled: "warning" }[s] || "default");
-
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Deployments</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>Add Deployment</Button>
-      </Box>
+    <Box p={4}>
+      <PageHeader
+        title="Deployments"
+        subtitle={`${rows.length} deployment${rows.length !== 1 ? "s" : ""} active`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Add Deployment
+          </Button>
+        }
+      />
 
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {["Team / Unit", "Location", "Task", "Deployed On", "Status"].map((c) => (
-                <TableCell key={c}>{c}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.length === 0 ? (
+      <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={5} align="center">No deployments recorded.</TableCell>
+                {["Team / Unit", "Location", "Task", "Deployed On", "Status"].map((h) => (
+                  <TableCell key={h} sx={headSx}>{h}</TableCell>
+                ))}
               </TableRow>
-            ) : rows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell>{row.team}</TableCell>
-                <TableCell>{row.location}</TableCell>
-                <TableCell>{row.task}</TableCell>
-                <TableCell>{row.deployed_on}</TableCell>
-                <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 5, color: "#9ca3af" }}>No deployments recorded.</TableCell></TableRow>
+              ) : rows.map((row) => (
+                <TableRow key={row.id} hover sx={{ "&:last-child td": { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.team}</TableCell>
+                  <TableCell>{row.location}</TableCell>
+                  <TableCell>{row.task}</TableCell>
+                  <TableCell>{row.deployed_on}</TableCell>
+                  <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" sx={{ fontWeight: 600 }} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Deployment</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Deployment</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
@@ -71,7 +78,7 @@ export default function Deployments() {
               placeholder="Active / Completed / Recalled" />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>Save</Button>
         </DialogActions>

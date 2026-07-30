@@ -1,49 +1,56 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper, CircularProgress, Chip,
+  Box, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, CircularProgress, Chip,
 } from "@mui/material";
 import axios from "axios";
+import PageHeader from "../components/PageHeader";
+
+const headSx = { fontWeight: 700, bgcolor: "#f8fafc", color: "#374151", fontSize: 13 };
 
 export default function Resources() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("/api/resource")
+    axios.get("/api/resource")
       .then((res) => setRows(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" gutterBottom>Resources</Typography>
+    <Box p={4}>
+      <PageHeader
+        title="Resources"
+        subtitle={`${rows.length} item${rows.length !== 1 ? "s" : ""} available`}
+      />
 
       {loading ? (
-        <CircularProgress />
+        <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Item Name</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell align="right">Qty Available</TableCell>
-                <TableCell>Unit</TableCell>
-                <TableCell>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
+        <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5} align="center">No resources found.</TableCell>
+                  {["Item Name", "Category", "Qty Available", "Unit", "Status"].map((h, i) => (
+                    <TableCell key={h} sx={{ ...headSx, ...(i === 2 ? { textAlign: "right" } : {}) }}>
+                      {h}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ) : (
-                rows.map((row) => (
-                  <TableRow key={row.resource_id} hover>
-                    <TableCell>{row.item_name}</TableCell>
+              </TableHead>
+              <TableBody>
+                {rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 5, color: "#9ca3af" }}>
+                      No resources found.
+                    </TableCell>
+                  </TableRow>
+                ) : rows.map((row) => (
+                  <TableRow key={row.resource_id} hover sx={{ "&:last-child td": { border: 0 } }}>
+                    <TableCell sx={{ fontWeight: 600 }}>{row.item_name}</TableCell>
                     <TableCell>{row.category}</TableCell>
                     <TableCell align="right">{row.quantity_available}</TableCell>
                     <TableCell>{row.unit}</TableCell>
@@ -51,15 +58,15 @@ export default function Resources() {
                       <Chip
                         label={row.quantity_available > 10 ? "In Stock" : "Low"}
                         color={row.quantity_available > 10 ? "success" : "warning"}
-                        size="small"
+                        size="small" sx={{ fontWeight: 600 }}
                       />
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       )}
     </Box>
   );

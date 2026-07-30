@@ -1,9 +1,14 @@
 import { useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
+  Box, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip,
+  DialogActions, TextField, Stack, Chip, Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import PageHeader from "../components/PageHeader";
+
+const headSx = { fontWeight: 700, bgcolor: "#f8fafc", color: "#374151", fontSize: 13 };
+const statusColor = (s) => ({ Received: "success", Pending: "warning", Rejected: "error" }[s] || "default");
 
 export default function Donations() {
   const [rows, setRows] = useState([]);
@@ -17,49 +22,51 @@ export default function Donations() {
     if (!form.donor || !form.item || !form.quantity) { setError("Donor, item and quantity are required."); return; }
     setRows([...rows, { ...form, id: Date.now() }]);
     setForm({ donor: "", item: "", quantity: "", unit: "", date: "", status: "Received" });
-    setOpen(false);
-    setError("");
+    setOpen(false); setError("");
   };
 
-  const statusColor = (s) => ({ Received: "success", Pending: "warning", Rejected: "error" }[s] || "default");
-
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Donations</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>Add Donation</Button>
-      </Box>
+    <Box p={4}>
+      <PageHeader
+        title="Donations"
+        subtitle={`${rows.length} donation${rows.length !== 1 ? "s" : ""} recorded`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Add Donation
+          </Button>
+        }
+      />
 
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {["Donor", "Item", "Quantity", "Unit", "Date", "Status"].map((c) => (
-                <TableCell key={c}>{c}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.length === 0 ? (
+      <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={6} align="center">No donations recorded.</TableCell>
+                {["Donor", "Item", "Quantity", "Unit", "Date", "Status"].map((h) => (
+                  <TableCell key={h} sx={headSx}>{h}</TableCell>
+                ))}
               </TableRow>
-            ) : rows.map((row) => (
-              <TableRow key={row.id} hover>
-                <TableCell>{row.donor}</TableCell>
-                <TableCell>{row.item}</TableCell>
-                <TableCell align="right">{row.quantity}</TableCell>
-                <TableCell>{row.unit}</TableCell>
-                <TableCell>{row.date}</TableCell>
-                <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 5, color: "#9ca3af" }}>No donations recorded.</TableCell></TableRow>
+              ) : rows.map((row) => (
+                <TableRow key={row.id} hover sx={{ "&:last-child td": { border: 0 } }}>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.donor}</TableCell>
+                  <TableCell>{row.item}</TableCell>
+                  <TableCell align="right">{row.quantity}</TableCell>
+                  <TableCell>{row.unit}</TableCell>
+                  <TableCell>{row.date}</TableCell>
+                  <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" sx={{ fontWeight: 600 }} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle>Add Donation</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Add Donation</DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
@@ -75,7 +82,7 @@ export default function Donations() {
               placeholder="Received / Pending / Rejected" />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>Save</Button>
         </DialogActions>
