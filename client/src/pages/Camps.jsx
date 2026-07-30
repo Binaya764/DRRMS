@@ -40,7 +40,7 @@ export default function Camps() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Camps / Shelters"
         subtitle={`${rows.length} shelter${rows.length !== 1 ? "s" : ""} registered`}

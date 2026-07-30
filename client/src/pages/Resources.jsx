@@ -20,7 +20,7 @@ export default function Resources() {
   }, []);
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Resources"
         subtitle={`${rows.length} item${rows.length !== 1 ? "s" : ""} available`}

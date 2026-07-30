@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Box } from "@mui/material";
 
 import Sidebar, { DRAWER_WIDTH } from "../components/Sidebar";
+import Navbar from "../components/Navbar";
 
 import Dashboard from "../pages/Dashboard";
 import Camps from "../pages/Camps";
@@ -20,9 +21,11 @@ export default function DashboardLayouts() {
       <Sidebar />
 
       <Box
-        component="main"
         sx={{
           flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          width: `calc(100% - ${DRAWER_WIDTH}px)`,
           bgcolor: "#f1f5f9",
           minHeight: "100vh",
           width: `calc(100% - ${DRAWER_WIDTH}px)`,
