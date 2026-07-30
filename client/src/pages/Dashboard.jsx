@@ -3,31 +3,28 @@ import {
   Box, Typography, Grid, Card, CardContent,
   CircularProgress, Chip, Divider,
 } from "@mui/material";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import WarningAmberIcon      from "@mui/icons-material/WarningAmber";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
-import HolidayVillageIcon from "@mui/icons-material/HolidayVillage";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import HolidayVillageIcon    from "@mui/icons-material/HolidayVillage";
+import PeopleAltIcon         from "@mui/icons-material/PeopleAlt";
 import axios from "axios";
 
 function StatCard({ label, value, icon, color }) {
   return (
-    <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-      <CardContent sx={{ display: "flex", alignItems: "center", gap: 2, p: 2.5 }}>
-        <Box
-          sx={{
-            width: 52, height: 52, borderRadius: 2,
-            bgcolor: `${color}18`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <Box sx={{ color, display: "flex" }}>{icon}</Box>
+    <Card>
+      <CardContent sx={{ display: "flex", alignItems: "center", gap: 2.5, p: 3 }}>
+        <Box sx={{
+          width: 56, height: 56, borderRadius: 3,
+          bgcolor: `${color}15`,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <Box sx={{ color, display: "flex", fontSize: 28 }}>{icon}</Box>
         </Box>
         <Box>
-          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+          <Typography variant="body2" color="text.secondary" fontWeight={500} mb={0.3}>
             {label}
           </Typography>
-          <Typography variant="h4" fontWeight={700} color="text.primary" lineHeight={1.2}>
+          <Typography variant="h4" fontWeight={800} color="text.primary" lineHeight={1}>
             {value ?? "—"}
           </Typography>
         </Box>
@@ -59,7 +56,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Box p={4} display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <CircularProgress />
       </Box>
     );
@@ -68,54 +65,45 @@ export default function Dashboard() {
   const totalOccupancy = shelters.reduce((s, x) => s + (x.current_occupancy || 0), 0);
 
   return (
-    <Box p={4}>
-      <Box mb={4}>
-        <Typography variant="h5" fontWeight={700}>Dashboard</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Overview of active operations
-        </Typography>
-      </Box>
-
-      {/* Stat cards */}
-      <Grid container spacing={2.5} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Active Disasters" value={disasters.length}
-            icon={<WarningAmberIcon />} color="#ef4444" />
+    <Box>
+      <Grid container spacing={3} mb={4}>
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard label="Active Disasters"   value={disasters.length} icon={<WarningAmberIcon fontSize="inherit" />}      color="#ef4444" />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Resources Available" value={resources.length}
-            icon={<VolunteerActivismIcon />} color="#2563eb" />
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard label="Resources Available" value={resources.length} icon={<VolunteerActivismIcon fontSize="inherit" />} color="#2563eb" />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Shelters" value={shelters.length}
-            icon={<HolidayVillageIcon />} color="#16a34a" />
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard label="Shelters"            value={shelters.length}  icon={<HolidayVillageIcon fontSize="inherit" />}    color="#16a34a" />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard label="Total Occupancy" value={totalOccupancy}
-            icon={<PeopleAltIcon />} color="#d97706" />
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard label="Total Occupancy"     value={totalOccupancy}   icon={<PeopleAltIcon fontSize="inherit" />}         color="#d97706" />
         </Grid>
       </Grid>
 
-      {/* Recent disasters */}
-      <Card sx={{ borderRadius: 3, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+      <Card>
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" fontWeight={700} mb={2}>
-            Recent Active Disasters
+          <Typography variant="h6" mb={0.5}>Recent Active Disasters</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Latest events requiring attention
           </Typography>
-          <Divider sx={{ mb: 2 }} />
+          <Divider sx={{ mb: 1 }} />
+
           {disasters.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">No active disasters.</Typography>
+            <Box py={4} textAlign="center">
+              <Typography color="text.secondary" variant="body2">No active disasters at this time.</Typography>
+            </Box>
           ) : (
             disasters.slice(0, 5).map((d, i) => (
               <Box key={d.event_id}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" py={1.2}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" py={1.5}>
                   <Box>
-                    <Typography fontWeight={600} variant="body1">{d.name}</Typography>
+                    <Typography fontWeight={600}>{d.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {d.type} · {d.location}
+                      {d.type} &nbsp;·&nbsp; {d.location}
                     </Typography>
                   </Box>
-                  <Chip label="Active" color="error" size="small" sx={{ fontWeight: 600 }} />
+                  <Chip label="Active" color="error" size="small" />
                 </Box>
                 {i < Math.min(disasters.length, 5) - 1 && <Divider />}
               </Box>

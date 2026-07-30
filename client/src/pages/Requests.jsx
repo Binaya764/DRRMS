@@ -27,7 +27,7 @@ export default function Requests() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Resource Requests"
         subtitle={`${rows.length} request${rows.length !== 1 ? "s" : ""}`}

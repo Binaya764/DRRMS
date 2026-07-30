@@ -26,7 +26,7 @@ export default function Donations() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Donations"
         subtitle={`${rows.length} donation${rows.length !== 1 ? "s" : ""} recorded`}

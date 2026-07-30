@@ -26,7 +26,7 @@ export default function Victims() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Victims"
         subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}

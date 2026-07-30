@@ -44,7 +44,7 @@ export default function DisasterAreas() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Disaster Areas"
         subtitle={`${rows.length} active event${rows.length !== 1 ? "s" : ""}`}

@@ -27,7 +27,7 @@ export default function Inventory() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Inventory"
         subtitle={`${rows.length} item${rows.length !== 1 ? "s" : ""} tracked`}

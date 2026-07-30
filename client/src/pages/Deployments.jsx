@@ -26,7 +26,7 @@ export default function Deployments() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Deployments"
         subtitle={`${rows.length} deployment${rows.length !== 1 ? "s" : ""} active`}

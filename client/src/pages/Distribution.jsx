@@ -25,7 +25,7 @@ export default function Distribution() {
   };
 
   return (
-    <Box p={4}>
+    <Box>
       <PageHeader
         title="Distribution"
         subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
