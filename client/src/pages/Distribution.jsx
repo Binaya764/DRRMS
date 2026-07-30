@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Box, Button, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip, Typography, CircularProgress,
+  DialogActions, TextField, Stack, Typography, CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
@@ -14,14 +14,11 @@ export default function Distribution() {
   const [open, setOpen]       = useState(false);
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState("");
-  const [form, setForm]       = useState({ shelter: "", item: "", quantity: "", unit: "", date: "", distributed_by: "" });
+  const [form, setForm]       = useState({ victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" });
 
   const load = () => {
     setLoading(true);
-    axios.get("/api/distributions")
-      .then(res => setRows(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    axios.get("/api/distributions").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -29,21 +26,18 @@ export default function Distribution() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = () => {
-    if (!form.shelter || !form.item || !form.quantity) { setError("Shelter, item and quantity are required."); return; }
+    if (!form.resource_id || !form.quantity_given) { setError("Resource ID and quantity are required."); return; }
     setSaving(true);
     axios.post("/api/distributions", form)
-      .then(() => { setOpen(false); setForm({ shelter: "", item: "", quantity: "", unit: "", date: "", distributed_by: "" }); setError(""); load(); })
+      .then(() => { setOpen(false); setForm({ victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" }); setError(""); load(); })
       .catch(err => setError(err.response?.data?.error || "Failed to save."))
       .finally(() => setSaving(false));
   };
 
   return (
     <Box>
-      <PageHeader
-        title="Distribution"
-        subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
-        action={<Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Record Distribution</Button>}
-      />
+      <PageHeader title="Distribution" subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
+        action={<Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Record Distribution</Button>} />
 
       {loading ? <Box display="flex" justifyContent="center" mt={6}><CircularProgress /></Box> : (
         <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
@@ -51,23 +45,21 @@ export default function Distribution() {
             <Table>
               <TableHead>
                 <TableRow>
-                  {["Shelter / Camp", "Item", "Quantity", "Unit", "Date", "Distributed By", "Status"].map(h => (
-                    <TableCell key={h}>{h}</TableCell>
-                  ))}
+                  {["ID", "Victim ID", "Resource ID", "Camp ID", "Qty Given", "By", "Date"].map(h => <TableCell key={h}>{h}</TableCell>)}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.length === 0 ? (
                   <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5, color: "#9ca3af" }}>No distribution records found.</TableCell></TableRow>
                 ) : rows.map(row => (
-                  <TableRow key={row.distribution_id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{row.shelter}</TableCell>
-                    <TableCell>{row.item}</TableCell>
-                    <TableCell align="right">{row.quantity}</TableCell>
-                    <TableCell>{row.unit}</TableCell>
-                    <TableCell>{row.date_distributed?.slice(0, 10)}</TableCell>
-                    <TableCell>{row.distributed_by}</TableCell>
-                    <TableCell><Chip label="Distributed" color="success" size="small" /></TableCell>
+                  <TableRow key={row.deployment_id} hover>
+                    <TableCell>{row.deployment_id}</TableCell>
+                    <TableCell>{row.victim_id}</TableCell>
+                    <TableCell>{row.resource_id}</TableCell>
+                    <TableCell>{row.camp_id}</TableCell>
+                    <TableCell align="right">{row.quantity_given}</TableCell>
+                    <TableCell>{row.deployment_by}</TableCell>
+                    <TableCell>{row.deployment_at?.slice(0, 10)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -81,17 +73,11 @@ export default function Distribution() {
         <DialogContent>
           <Stack spacing={2} mt={1}>
             {error && <Typography color="error" variant="body2">{error}</Typography>}
-            <TextField label="Shelter / Camp" name="shelter" value={form.shelter} onChange={handleChange} />
-            <TextField label="Item" name="item" value={form.item} onChange={handleChange} />
-            <Stack direction="row" spacing={2}>
-              <TextField label="Quantity" name="quantity" type="number" value={form.quantity} onChange={handleChange} />
-              <TextField label="Unit" name="unit" value={form.unit} onChange={handleChange} placeholder="kg, pcs, L" />
-            </Stack>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Date</Typography>
-              <TextField name="date" type="date" value={form.date} onChange={handleChange} />
-            </Box>
-            <TextField label="Distributed By" name="distributed_by" value={form.distributed_by} onChange={handleChange} />
+            <TextField label="Resource ID" name="resource_id" type="number" value={form.resource_id} onChange={handleChange} />
+            <TextField label="Quantity Given" name="quantity_given" type="number" value={form.quantity_given} onChange={handleChange} />
+            <TextField label="Camp ID (optional)" name="camp_id" type="number" value={form.camp_id} onChange={handleChange} />
+            <TextField label="Victim ID (optional)" name="victim_id" type="number" value={form.victim_id} onChange={handleChange} />
+            <TextField label="Deployed By" name="deployment_by" value={form.deployment_by} onChange={handleChange} />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

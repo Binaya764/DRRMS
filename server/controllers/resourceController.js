@@ -1,19 +1,14 @@
-const db = require("../config/db");
-async function getResource(req,res){
+const pool = require("../config/db");
 
-    try{
-        const result = await db.query(
-            'SELECT resource_id, item_name, category, quantity_available, unit FROM resources WHERE quantity_available>0 ORDER BY category'
-        );
-        res.status(200).json(result.rows);
-
-    }catch(error){
-        console.error("DATABASE CRASH DETAILS:", error);
-        res.status(500).json({error: 'Server database error'});
-    }
-
+async function getResource(req, res) {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM RESOURCE WHERE quantity > 0 ORDER BY category"
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
 
-module.exports ={
-    getResource
-}
+module.exports = { getResource };

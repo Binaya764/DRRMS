@@ -1,8 +1,9 @@
 const pool = require("../config/db");
-async function getInfo(req,res){
-    try {
+
+async function getInfo(req, res) {
+  try {
     const result = await pool.query(
-      "SELECT * FROM Disaster_Events WHERE status = 'Active' ORDER BY start_date DESC"
+      "SELECT * FROM DISASTER_AREA WHERE status = 'Active' ORDER BY area_id DESC"
     );
     res.json(result.rows);
   } catch (err) {
@@ -10,12 +11,13 @@ async function getInfo(req,res){
   }
 }
 
-async function postInfo(req,res){
-    const { name, type, location, start_date } = req.body;
+async function postInfo(req, res) {
+  const { disaster_name, disaster_type, location, severity, status } = req.body;
+  if (!disaster_name) return res.status(400).json({ error: "Disaster name is required." });
   try {
     const result = await pool.query(
-      'INSERT INTO Disaster_Events (name, type, location, start_date) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, type, location, start_date]
+      "INSERT INTO DISASTER_AREA (disaster_name, disaster_type, location, severity, status) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [disaster_name, disaster_type || null, location || null, severity || "Medium", status || "Active"]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -23,7 +25,4 @@ async function postInfo(req,res){
   }
 }
 
-module.exports ={
-    getInfo,
-    postInfo
-}
+module.exports = { getInfo, postInfo };

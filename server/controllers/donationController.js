@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 async function getDonations(req, res) {
   try {
-    const result = await pool.query('SELECT * FROM Donations ORDER BY created_at DESC');
+    const result = await pool.query("SELECT * FROM DONATION ORDER BY donation_id DESC");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -10,12 +10,11 @@ async function getDonations(req, res) {
 }
 
 async function postDonation(req, res) {
-  const { donor, item, quantity, unit, date, status } = req.body;
-  if (!donor || !item || !quantity) return res.status(400).json({ error: 'Donor, item and quantity are required.' });
+  const { amount, cash_amount, currency, donation_date, remarks } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO Donations (donor, item, quantity, unit, date_received, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [donor, item, quantity, unit || null, date || null, status || 'Received']
+      "INSERT INTO DONATION (amount, cash_amount, currency, donation_date, remarks) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [amount || null, cash_amount || null, currency || "NPR", donation_date || null, remarks || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

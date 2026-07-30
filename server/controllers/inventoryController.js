@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 async function getInventory(req, res) {
   try {
-    const result = await pool.query('SELECT * FROM Inventory ORDER BY created_at DESC');
+    const result = await pool.query("SELECT * FROM RESOURCE ORDER BY category");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -10,12 +10,12 @@ async function getInventory(req, res) {
 }
 
 async function postInventory(req, res) {
-  const { item, category, quantity, unit, location, expires } = req.body;
-  if (!item || !quantity) return res.status(400).json({ error: 'Item and quantity are required.' });
+  const { resource_name, category, quantity } = req.body;
+  if (!resource_name || !quantity) return res.status(400).json({ error: "Resource name and quantity are required." });
   try {
     const result = await pool.query(
-      'INSERT INTO Inventory (item, category, quantity, unit, storage_location, expiry_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [item, category || null, quantity, unit || null, location || null, expires || null]
+      "INSERT INTO RESOURCE (resource_name, category, quantity) VALUES ($1, $2, $3) RETURNING *",
+      [resource_name, category || null, quantity]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
