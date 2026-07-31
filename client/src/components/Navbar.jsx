@@ -62,7 +62,7 @@ export default function Navbar() {
           <Typography
             sx={{
               mt: 1,
-              fontSize: 24,
+              fontSize: 23,
               fontWeight: 800,
               letterSpacing: "-0.5px",
               color: "#0f172a",

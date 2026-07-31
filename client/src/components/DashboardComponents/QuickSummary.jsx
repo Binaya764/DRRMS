@@ -5,13 +5,35 @@ import HolidayVillageIcon from "@mui/icons-material/HolidayVillage";
 import GroupsIcon from "@mui/icons-material/Groups";
 
 const rows = [
-  { key: "disasters", label: "Active Disasters", icon: <WarningAmberIcon fontSize="small" />, color: "#ef4444" },
-  { key: "resources", label: "Available Resources", icon: <Inventory2Icon fontSize="small" />, color: "#1976d2" },
-  { key: "shelters",  label: "Registered Shelters", icon: <HolidayVillageIcon fontSize="small" />, color: "#2e7d32" },
+  {
+    key: "disasters",
+    label: "Active Disasters",
+    icon: <WarningAmberIcon fontSize="small" />,
+    color: "#ef4444",
+  },
+  {
+    key: "resources",
+    label: "Available Resources",
+    icon: <Inventory2Icon fontSize="small" />,
+    color: "#1976d2",
+  },
+  {
+    key: "shelters",
+    label: "Registered Shelters",
+    icon: <HolidayVillageIcon fontSize="small" />,
+    color: "#2e7d32",
+  },
 ];
 
-export default function QuickSummary({ disasters, resources, shelters, occupancy, capacity }) {
-  const occupancyPct = capacity > 0 ? Math.min(100, Math.round((occupancy / capacity) * 100)) : 0;
+export default function QuickSummary({
+  disasters,
+  resources,
+  shelters,
+  occupancy,
+  capacity,
+}) {
+  const occupancyPct =
+    capacity > 0 ? Math.min(100, Math.round((occupancy / capacity) * 100)) : 0;
 
   const values = { disasters, resources, shelters };
 
@@ -26,21 +48,23 @@ export default function QuickSummary({ disasters, resources, shelters, occupancy
         height: "100%",
       }}
     >
-      <Typography variant="h6" fontWeight={600}>
+      <Typography variant="h6" fontWeight={600} sx={{ mb: 1 }}>
         Quick Summary
       </Typography>
 
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 0 }} />
 
       {rows.map(({ key, label, icon, color }, i) => (
         <Box key={key}>
           <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            py={1.5}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              py: 1.5,
+            }}
           >
-            <Box display="flex" alignItems="center" gap={1} sx={{ color }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color }}>
               {icon}
               <Typography variant="body2" fontWeight={500} color="text.primary">
                 {label}
@@ -54,12 +78,26 @@ export default function QuickSummary({ disasters, resources, shelters, occupancy
         </Box>
       ))}
 
-      <Divider sx={{ my: 1 }} />
+      <Divider sx={{ my: 0 }} />
 
       {/* Occupancy bar */}
-      <Box pt={1.5}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.75}>
-          <Box display="flex" alignItems="center" gap={1} sx={{ color: "#ed6c02" }}>
+      <Box sx={{ pt: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "#ed6c02",
+            }}
+          >
             <GroupsIcon fontSize="small" />
             <Typography variant="body2" fontWeight={500} color="text.primary">
               Shelter Occupancy
@@ -72,10 +110,20 @@ export default function QuickSummary({ disasters, resources, shelters, occupancy
         <LinearProgress
           variant="determinate"
           value={occupancyPct}
-          color={occupancyPct > 90 ? "error" : occupancyPct > 70 ? "warning" : "success"}
+          color={
+            occupancyPct > 90
+              ? "error"
+              : occupancyPct > 70
+                ? "warning"
+                : "success"
+          }
           sx={{ height: 8, borderRadius: 4 }}
         />
-        <Typography variant="caption" color="text.secondary" mt={0.5} display="block" textAlign="right">
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 0.5, display: "block", textAlign: "right" }}
+        >
           {occupancyPct}% capacity used
         </Typography>
       </Box>
