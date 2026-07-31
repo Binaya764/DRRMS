@@ -39,15 +39,16 @@ export default function FormDialog({
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth={maxWidth}>
-      <DialogTitle sx={{ fontWeight: 700 }}>{title}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>{title}</DialogTitle>
 
-      <DialogContent>
-        <Stack spacing={2} mt={1}>
+      <DialogContent sx={{ pt: 40 }}>
+        <Stack spacing={2}>
           {error && (
             <Typography color="error" variant="body2">
               {error}
             </Typography>
           )}
+
           {children}
         </Stack>
       </DialogContent>
@@ -56,6 +57,7 @@ export default function FormDialog({
         <Button variant="outlined" onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
+
         <Button variant="contained" onClick={onSubmit} disabled={loading}>
           {loading ? "Saving…" : submitLabel}
         </Button>

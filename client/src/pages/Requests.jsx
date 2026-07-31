@@ -1,37 +1,56 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Button, Chip, TextField, MenuItem,
-  IconButton, Tooltip, Stack, Typography, Divider,
+  Box,
+  Button,
+  Chip,
+  TextField,
+  MenuItem,
+  IconButton,
+  Tooltip,
+  Stack,
+  Typography,
+  Divider,
 } from "@mui/material";
-import AddIcon    from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RemoveIcon from "@mui/icons-material/Remove";
 
-import DataTable     from "../components/DataTable";
-import FormDialog    from "../components/FormDialog";
+import DataTable from "../components/DataTable";
+import FormDialog from "../components/FormDialog";
 import ConfirmDelete from "../components/ConfirmDelete";
-import PageHeader    from "../components/PageHeader";
-import { getRequests, createRequest, deleteRequest, getInventory } from "../services/api";
+import PageHeader from "../components/PageHeader";
+import {
+  getRequests,
+  createRequest,
+  deleteRequest,
+  getInventory,
+} from "../services/api";
 
 const priorityColor = (p) =>
-  ({ High: "error", Medium: "warning", Low: "info", EMERGENCY: "error" }[p] || "default");
+  ({ High: "error", Medium: "warning", Low: "info", EMERGENCY: "error" })[p] ||
+  "default";
 const statusColor = (s) =>
-  ({ Pending: "warning", Approved: "success", Completed: "info", Rejected: "error" }[s] || "default");
+  ({
+    Pending: "warning",
+    Approved: "success",
+    Completed: "info",
+    Rejected: "error",
+  })[s] || "default";
 
 const emptyForm = { status: "Pending", priority_level: "Medium" };
 const emptyItem = { resource_id: "", quantity_requested: "" };
 
 export default function Requests() {
-  const [rows,      setRows]      = useState([]);
+  const [rows, setRows] = useState([]);
   const [resources, setResources] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [open,      setOpen]      = useState(false);
-  const [form,      setForm]      = useState(emptyForm);
-  const [items,     setItems]     = useState([{ ...emptyItem }]);
-  const [saving,    setSaving]    = useState(false);
-  const [error,     setError]     = useState("");
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [items, setItems] = useState([{ ...emptyItem }]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting,  setDeleting]  = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -43,11 +62,14 @@ export default function Requests() {
 
   useEffect(() => {
     load();
-    getInventory().then((r) => setResources(r.data)).catch(console.error);
+    getInventory()
+      .then((r) => setResources(r.data))
+      .catch(console.error);
   }, []);
 
   // ── Form handlers ──────────────────────────────────────
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleClose = () => {
     setOpen(false);
@@ -59,7 +81,7 @@ export default function Requests() {
   // ── Item row handlers ──────────────────────────────────
   const handleItemChange = (index, field, value) => {
     const updated = items.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
+      i === index ? { ...item, [field]: value } : item,
     );
     setItems(updated);
   };
@@ -73,15 +95,22 @@ export default function Requests() {
 
   // ── Submit ─────────────────────────────────────────────
   const handleSubmit = () => {
-    const validItems = items.filter((i) => i.resource_id && i.quantity_requested);
+    const validItems = items.filter(
+      (i) => i.resource_id && i.quantity_requested,
+    );
     if (validItems.length === 0) {
       setError("Add at least one item with a resource and quantity.");
       return;
     }
     setSaving(true);
     createRequest({ ...form, items: validItems })
-      .then(() => { handleClose(); load(); })
-      .catch((err) => setError(err.response?.data?.error || err.message || "Failed to save."))
+      .then(() => {
+        handleClose();
+        load();
+      })
+      .catch((err) =>
+        setError(err.response?.data?.error || err.message || "Failed to save."),
+      )
       .finally(() => setSaving(false));
   };
 
@@ -89,15 +118,18 @@ export default function Requests() {
   const handleDelete = () => {
     setDeleting(true);
     deleteRequest(deleteTarget.request_id)
-      .then(() => { setDeleteTarget(null); load(); })
+      .then(() => {
+        setDeleteTarget(null);
+        load();
+      })
       .catch(console.error)
       .finally(() => setDeleting(false));
   };
 
   // ── Table columns ──────────────────────────────────────
   const columns = [
-    { key: "request_id",     label: "ID",       render: (v) => <strong>#{v}</strong> },
-    { key: "timestamp",      label: "Date",     render: (v) => v?.slice(0, 10) },
+    { key: "request_id", label: "ID", render: (v) => <strong>#{v}</strong> },
+    { key: "timestamp", label: "Date", render: (v) => v?.slice(0, 10) },
     {
       key: "priority_level",
       label: "Priority",
@@ -113,7 +145,11 @@ export default function Requests() {
       label: "Requested Items",
       render: (items) => {
         if (!items || items.length === 0)
-          return <Typography variant="body2" color="text.disabled">—</Typography>;
+          return (
+            <Typography variant="body2" color="text.disabled">
+              —
+            </Typography>
+          );
         return (
           <Stack spacing={0.5}>
             {items.map((item, i) => (
@@ -134,7 +170,11 @@ export default function Requests() {
       label: "",
       render: (_, row) => (
         <Tooltip title="Delete">
-          <IconButton size="small" color="error" onClick={() => setDeleteTarget(row)}>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setDeleteTarget(row)}
+          >
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -148,7 +188,12 @@ export default function Requests() {
         title="Resource Requests"
         subtitle={`${rows.length} request${rows.length !== 1 ? "s" : ""}`}
         action={
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ mb: 1, mt: 1 }}
+          >
             New Request
           </Button>
         }
@@ -184,7 +229,9 @@ export default function Requests() {
             sx={{ flex: 1 }}
           >
             {["Low", "Medium", "High", "EMERGENCY"].map((p) => (
-              <MenuItem key={p} value={p}>{p}</MenuItem>
+              <MenuItem key={p} value={p}>
+                {p}
+              </MenuItem>
             ))}
           </TextField>
 
@@ -197,7 +244,9 @@ export default function Requests() {
             sx={{ flex: 1 }}
           >
             {["Pending", "Approved", "Completed", "Rejected"].map((s) => (
-              <MenuItem key={s} value={s}>{s}</MenuItem>
+              <MenuItem key={s} value={s}>
+                {s}
+              </MenuItem>
             ))}
           </TextField>
         </Stack>
@@ -215,7 +264,9 @@ export default function Requests() {
               select
               label="Resource *"
               value={item.resource_id}
-              onChange={(e) => handleItemChange(index, "resource_id", e.target.value)}
+              onChange={(e) =>
+                handleItemChange(index, "resource_id", e.target.value)
+              }
               sx={{ flex: 2 }}
             >
               <MenuItem value="">— Select resource —</MenuItem>
@@ -230,7 +281,9 @@ export default function Requests() {
               label="Quantity *"
               type="number"
               value={item.quantity_requested}
-              onChange={(e) => handleItemChange(index, "quantity_requested", e.target.value)}
+              onChange={(e) =>
+                handleItemChange(index, "quantity_requested", e.target.value)
+              }
               sx={{ flex: 1 }}
               inputProps={{ min: 1 }}
             />
