@@ -2,9 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const server = express();
 const PORT = 3000;
-
-server.use(express.json());
-
 const allocationRouter = require("./routes/allocationRouter");
 const resourceRouter   = require("./routes/resourceRouter");
 const disasterRouter   = require("./routes/disasterRouter");
@@ -16,10 +13,17 @@ const distributionRouter = require("./routes/distributionRouter");
 const deploymentRouter = require("./routes/deploymentRouter");
 const inventoryRouter  = require("./routes/inventoryRouter");
 
+
+
+
+
 const pool = require("./config/db");
 pool.query('SELECT NOW()')
   .then(res => console.log('Connected to Postgres at:', res.rows[0].now))
   .catch(err => console.error('Connection error:', err.message));
+
+server.use(express.json());
+
 
 server.use("/api", allocationRouter);
 server.use("/api", resourceRouter);
