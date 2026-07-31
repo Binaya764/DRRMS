@@ -39,11 +39,11 @@ export default function Dashboard() {
     <Box sx={{ width: "100%", p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700}>
+        <Typography variant="h4" fontWeight={700} sx={{ color: "#0f172a" }}>
           Dashboard
         </Typography>
-        <Typography color="text.secondary">
-          Disaster Relief Resource Management System
+        <Typography sx={{ color: "#475569" }}>
+          Overview of active operations
         </Typography>
       </Box>
 
