@@ -8,7 +8,7 @@ const createUserVictim = async (data) => {
     } = data;
 
     const query = `
-        INSERT INTO USER_VICTIM
+        INSERT INTO USERS_VICTIM
         (
             user_id,
             victim_id
@@ -28,14 +28,14 @@ const createUserVictim = async (data) => {
 // Get all user-victim relationships
 const getAllUserVictims = async () => {
     return await pool.query(
-        "SELECT * FROM USER_VICTIM ORDER BY user_id, victim_id;"
+        "SELECT * FROM USERS_VICTIM ORDER BY user_id, victim_id;"
     );
 };
 
 // Get user-victim relationship by IDs
 const getUserVictimById = async (user_id, victim_id) => {
     return await pool.query(
-        `SELECT * FROM USER_VICTIM
+        `SELECT * FROM USERS_VICTIM
          WHERE user_id = $1
          AND victim_id = $2;`,
         [user_id, victim_id]
@@ -50,7 +50,7 @@ const updateUserVictim = async (user_id, victim_id, data) => {
     } = data;
 
     const query = `
-        UPDATE USER_VICTIM
+        UPDATE USERS_VICTIM
         SET
             user_id = $3,
             victim_id = $4
@@ -72,7 +72,7 @@ const updateUserVictim = async (user_id, victim_id, data) => {
 // Delete user-victim relationship
 const deleteUserVictim = async (user_id, victim_id) => {
     return await pool.query(
-        `DELETE FROM USER_VICTIM
+        `DELETE FROM USERS_VICTIM
          WHERE user_id = $1
          AND victim_id = $2
          RETURNING *;`,

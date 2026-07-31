@@ -12,7 +12,7 @@ const createUser = async (data) => {
     } = data;
 
     const query = `
-        INSERT INTO USER
+        INSERT INTO USERS
         (
             user_id,
             full_name,
@@ -40,14 +40,14 @@ const createUser = async (data) => {
 // Get all users
 const getAllUsers = async () => {
     return await pool.query(
-        "SELECT * FROM USER ORDER BY user_id;"
+        "SELECT * FROM USERS ORDER BY user_id;"
     );
 };
 
 // Get user by ID
 const getUserById = async (user_id) => {
     return await pool.query(
-        "SELECT * FROM USER WHERE user_id = $1;",
+        "SELECT * FROM USERS WHERE user_id = $1;",
         [user_id]
     );
 };
@@ -63,7 +63,7 @@ const updateUser = async (user_id, data) => {
     } = data;
 
     const query = `
-        UPDATE USER
+        UPDATE USERS
         SET
             full_name = $2,
             email = $3,
@@ -89,7 +89,7 @@ const updateUser = async (user_id, data) => {
 // Delete user
 const deleteUser = async (user_id) => {
     return await pool.query(
-        "DELETE FROM USER WHERE user_id = $1 RETURNING *;",
+        "DELETE FROM USERS WHERE user_id = $1 RETURNING *;",
         [user_id]
     );
 };

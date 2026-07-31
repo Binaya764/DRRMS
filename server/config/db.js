@@ -4,15 +4,15 @@ require('dotenv').config();
 const {Pool} = require("pg");
 module.exports = new Pool({
 
-    host: process.env.HOST,
-    user: process.env.USER,
-    database: process.env.DATABASE ,
-    password: process.env.PASSWORD,
-    port: process.env.PORT
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    database: process.env.DB_NAME ,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT
 });
 console.log("--- DB CONFIG DEBUG ---");
-console.log("Host:", process.env.HOST);
-console.log("User:", process.env.USER);
-console.log("Database:", process.env.DATABASE);
-console.log("Password Type:", typeof process.env.PASSWORD); // Should say 'string'
+console.log("Host:", process.env.DB_HOST);
+console.log("User:", process.env.DB_USER);
+console.log("Database:", process.env.DB_NAME);
+console.log("Password Type:", typeof process.env.DB_PASSWORD); // Should say 'string'
 console.log("-----------------------");

@@ -10,7 +10,6 @@ const createCamp = async (data) => {
         current_population,
         contact_number,
         status,
-        payment_id,
         resource_id,
     } = data;
 

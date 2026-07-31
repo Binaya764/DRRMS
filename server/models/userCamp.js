@@ -8,7 +8,7 @@ const createUserCamp = async (data) => {
     } = data;
 
     const query = `
-        INSERT INTO USER_CAMP
+        INSERT INTO USERS_CAMP
         (
             user_id,
             camp_id
@@ -28,14 +28,14 @@ const createUserCamp = async (data) => {
 // Get all user-camp relationships
 const getAllUserCamps = async () => {
     return await pool.query(
-        "SELECT * FROM USER_CAMP ORDER BY user_id, camp_id;"
+        "SELECT * FROM USERS_CAMP ORDER BY user_id, camp_id;"
     );
 };
 
 // Get user-camp relationship by IDs
 const getUserCampById = async (user_id, camp_id) => {
     return await pool.query(
-        `SELECT * FROM USER_CAMP
+        `SELECT * FROM USERS_CAMP
          WHERE user_id = $1
          AND camp_id = $2;`,
         [user_id, camp_id]
@@ -50,7 +50,7 @@ const updateUserCamp = async (user_id, camp_id, data) => {
     } = data;
 
     const query = `
-        UPDATE USER_CAMP
+        UPDATE USERS_CAMP
         SET
             user_id = $3,
             camp_id = $4
@@ -72,7 +72,7 @@ const updateUserCamp = async (user_id, camp_id, data) => {
 // Delete user-camp relationship
 const deleteUserCamp = async (user_id, camp_id) => {
     return await pool.query(
-        `DELETE FROM USER_CAMP
+        `DELETE FROM USERS_CAMP
          WHERE user_id = $1
          AND camp_id = $2
          RETURNING *;`,
