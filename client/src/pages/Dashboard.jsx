@@ -48,7 +48,7 @@ export default function Dashboard() {
   return (
     <Box sx={{ width: "100%", p: 3 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 2 }}>
         <Typography variant="h4" fontWeight={600}>
           Dashboard
         </Typography>

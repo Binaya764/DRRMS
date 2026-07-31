@@ -160,6 +160,7 @@ export default function DisasterAreas() {
           name="disaster_name"
           value={form.disaster_name}
           onChange={handleChange}
+          sx={{ mt: 5 }}
         />
         <TextField
           label="Type"
