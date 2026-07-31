@@ -58,3 +58,13 @@ export const createDeployment = (data) => axios.post("/api/deployments", data);
 
 // ── Allocation (transactional resource dispatch) ──────────
 export const createAllocation = (data) => axios.post("/api/allocation", data);
+
+// ── Delete operations ─────────────────────────────────────
+export const deleteDisaster     = (id) => axios.delete(`/api/disaster/${id}`);
+export const deleteShelter      = (id) => axios.delete(`/api/shelter/${id}`);
+export const deleteVictim       = (id) => axios.delete(`/api/victims/${id}`);
+export const deleteInventory    = (id) => axios.delete(`/api/inventory/${id}`);
+export const deleteDonation     = (id) => axios.delete(`/api/donations/${id}`);
+export const deleteRequest      = (id) => axios.delete(`/api/requests/${id}`);
+export const deleteDistribution = (id) => axios.delete(`/api/distributions/${id}`);
+export const deleteDeployment   = (id) => axios.delete(`/api/deployments/${id}`);

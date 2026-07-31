@@ -1,24 +1,19 @@
 import { useEffect, useState } from "react";
 import {
-  Box,
-  Button,
-  Chip,
-  TextField,
-  Stack,
-  LinearProgress,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box, Button, Chip, TextField, Stack,
+  LinearProgress, Typography,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  IconButton, Tooltip,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
+import AddIcon    from "@mui/icons-material/Add";
+import EditIcon   from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-import DataTable from "../components/DataTable";
-import FormDialog from "../components/FormDialog";
-import PageHeader from "../components/PageHeader";
-import { getShelters, createShelter, updateShelterPop } from "../services/api";
+import DataTable     from "../components/DataTable";
+import FormDialog    from "../components/FormDialog";
+import ConfirmDelete from "../components/ConfirmDelete";
+import PageHeader    from "../components/PageHeader";
+import { getShelters, createShelter, updateShelterPop, deleteShelter } from "../services/api";
 
 const statusColor = (s) =>
   ({ active: "success", full: "error", closed: "default" })[s?.toLowerCase()] ||
@@ -43,10 +38,14 @@ export default function Camps() {
   const [addError, setAddError] = useState("");
 
   // Edit population dialog
-  const [selected, setSelected] = useState(null);
+  const [selected,   setSelected]   = useState(null);
   const [population, setPopulation] = useState("");
   const [editSaving, setEditSaving] = useState(false);
-  const [editError, setEditError] = useState("");
+  const [editError,  setEditError]  = useState("");
+
+  // Delete dialog
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting,     setDeleting]     = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -104,17 +103,19 @@ export default function Camps() {
       return;
     }
     setEditSaving(true);
-    updateShelterPop(selected.camp_id, {
-      current_population: Number(population),
-    })
-      .then(() => {
-        handleEditClose();
-        load();
-      })
-      .catch((err) =>
-        setEditError(err.response?.data?.error || "Failed to update."),
-      )
+    updateShelterPop(selected.camp_id, { current_population: Number(population) })
+      .then(() => { handleEditClose(); load(); })
+      .catch((err) => setEditError(err.response?.data?.error || "Failed to update."))
       .finally(() => setEditSaving(false));
+  };
+
+  // ── Delete Camp ───────────────────────────────────────
+  const handleDelete = () => {
+    setDeleting(true);
+    deleteShelter(deleteTarget.camp_id)
+      .then(() => { setDeleteTarget(null); load(); })
+      .catch(console.error)
+      .finally(() => setDeleting(false));
   };
 
   const columns = [
@@ -168,15 +169,22 @@ export default function Camps() {
       key: "_actions",
       label: "",
       render: (_, row) => (
-        <Button
-          size="small"
-          startIcon={<EditIcon fontSize="small" />}
-          onClick={() => openEdit(row)}
-          variant="outlined"
-          sx={{ borderRadius: 2 }}
-        >
-          Update
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            startIcon={<EditIcon fontSize="small" />}
+            onClick={() => openEdit(row)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Update
+          </Button>
+          <Tooltip title="Delete">
+            <IconButton size="small" color="error" onClick={() => setDeleteTarget(row)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       ),
     },
   ];
@@ -260,21 +268,14 @@ export default function Camps() {
       </FormDialog>
 
       {/* Update Population */}
-      <Dialog
-        open={!!selected}
-        onClose={handleEditClose}
-        maxWidth="xs"
-        fullWidth
-      >
+      <Dialog open={!!selected} onClose={handleEditClose} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>
           Update Population — {selected?.camp_name}
         </DialogTitle>
         <DialogContent>
           <Box mt={1}>
             {editError && (
-              <Typography color="error" variant="body2" mb={1}>
-                {editError}
-              </Typography>
+              <Typography color="error" variant="body2" mb={1}>{editError}</Typography>
             )}
             <TextField
               label="Current Population"
@@ -287,18 +288,22 @@ export default function Camps() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={handleEditClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleEditSubmit}
-            disabled={editSaving}
-          >
+          <Button variant="outlined" onClick={handleEditClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleEditSubmit} disabled={editSaving}>
             {editSaving ? "Saving…" : "Save"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Camp */}
+      <ConfirmDelete
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Camp?"
+        message={`"${deleteTarget?.camp_name}" and all its associations will be permanently removed.`}
+      />
     </Box>
   );
 }

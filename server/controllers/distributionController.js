@@ -13,7 +13,8 @@ async function getDistributions(req, res) {
 
 async function postDistribution(req, res) {
   const { victim_id, resource_id, camp_id, quantity_given, deployment_by } = req.body;
-  if (!resource_id || !quantity_given) return res.status(400).json({ error: "Resource and quantity are required." });
+  if (!resource_id || !quantity_given)
+    return res.status(400).json({ error: "Resource and quantity are required." });
   try {
     const result = await pool.query(
       "INSERT INTO DEPLOYMENT_INFORMATION (victim_id, resource_id, camp_id, quantity_given, deployment_by, deployment_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *",
@@ -25,4 +26,19 @@ async function postDistribution(req, res) {
   }
 }
 
-module.exports = { getDistributions, postDistribution };
+async function deleteDistribution(req, res) {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "DELETE FROM DEPLOYMENT_INFORMATION WHERE deployment_id = $1 RETURNING *",
+      [id]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Distribution record not found." });
+    res.json({ message: "Distribution deleted successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { getDistributions, postDistribution, deleteDistribution };

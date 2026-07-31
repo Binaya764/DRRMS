@@ -22,4 +22,22 @@ async function postRequest(req, res) {
   }
 }
 
-module.exports = { getRequests, postRequest };
+async function deleteRequest(req, res) {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM VICTIM_REQUEST WHERE request_id = $1", [id]);
+    await pool.query("DELETE FROM CAMP_REQUEST WHERE request_id = $1", [id]);
+
+    const result = await pool.query(
+      "DELETE FROM REQUEST WHERE request_id = $1 RETURNING *",
+      [id]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Request not found." });
+    res.json({ message: "Request deleted successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { getRequests, postRequest, deleteRequest };
