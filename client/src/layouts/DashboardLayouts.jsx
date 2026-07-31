@@ -28,21 +28,26 @@ export default function DashboardLayouts() {
           width: `calc(100% - ${DRAWER_WIDTH}px)`,
           bgcolor: "#f1f5f9",
           minHeight: "100vh",
-          width: `calc(100% - ${DRAWER_WIDTH}px)`,
         }}
       >
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/disaster-areas" element={<DisasterAreas />} />
-          <Route path="/camps" element={<Camps />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/victims" element={<Victims />} />
-          <Route path="/requests" element={<Requests />} />
-          <Route path="/donations" element={<Donations />} />
-          <Route path="/distribution" element={<Distribution />} />
-          <Route path="/deployments" element={<Deployments />} />
-        </Routes>
+        {/* Sticky top nav bar */}
+        <Navbar />
+
+        {/* Page content */}
+        <Box sx={{ flexGrow: 1, overflow: "auto" }}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/disaster-areas" element={<DisasterAreas />} />
+            <Route path="/camps" element={<Camps />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/victims" element={<Victims />} />
+            <Route path="/requests" element={<Requests />} />
+            <Route path="/donations" element={<Donations />} />
+            <Route path="/distribution" element={<Distribution />} />
+            <Route path="/deployments" element={<Deployments />} />
+          </Routes>
+        </Box>
       </Box>
     </Box>
   );

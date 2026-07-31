@@ -1,6 +1,11 @@
 import { Paper, Typography, Divider, Stack, Box, Chip } from "@mui/material";
 
+const severityColor = (s) =>
+  ({ Low: "info", Medium: "warning", High: "error", Critical: "error" }[s] || "default");
+
 export default function RecentDisasters({ disasters }) {
+  const recent = disasters.slice(0, 5);
+
   return (
     <Paper
       elevation={0}
@@ -18,11 +23,11 @@ export default function RecentDisasters({ disasters }) {
 
       <Divider sx={{ my: 2 }} />
 
-      {disasters.length === 0 ? (
+      {recent.length === 0 ? (
         <Typography color="text.secondary">No active disasters.</Typography>
       ) : (
-        disasters.slice(0, 5).map((d, index) => (
-          <Box key={d.event_id}>
+        recent.map((d, index) => (
+          <Box key={d.area_id}>
             <Stack
               direction="row"
               justifyContent="space-between"
@@ -30,17 +35,21 @@ export default function RecentDisasters({ disasters }) {
               py={1.5}
             >
               <Box>
-                <Typography fontWeight={600}>{d.name}</Typography>
-
+                <Typography fontWeight={600}>{d.disaster_name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {d.type} • {d.location}
+                  {d.disaster_type} • {d.location}
                 </Typography>
               </Box>
 
-              <Chip label="Active" color="error" size="small" />
+              <Stack direction="row" spacing={1}>
+                {d.severity && (
+                  <Chip label={d.severity} color={severityColor(d.severity)} size="small" />
+                )}
+                <Chip label={d.status || "Active"} color="error" size="small" />
+              </Stack>
             </Stack>
 
-            {index !== Math.min(5, disasters.length) - 1 && <Divider />}
+            {index < recent.length - 1 && <Divider />}
           </Box>
         ))
       )}

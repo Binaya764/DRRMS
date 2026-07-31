@@ -12,10 +12,24 @@ async function getVictims(req, res) {
 async function postVictim(req, res) {
   const { victim_name, full_name, age, gender, phone_number, camp_id } = req.body;
   if (!victim_name) return res.status(400).json({ error: "Victim name is required." });
+
+  // Validate camp_id exists if provided
+  const campId = camp_id ? Number(camp_id) : null;
+  if (campId) {
+    try {
+      const check = await pool.query("SELECT camp_id FROM CAMP WHERE camp_id = $1", [campId]);
+      if (check.rows.length === 0) {
+        return res.status(400).json({ error: `Camp ID ${campId} does not exist. Please select a valid camp.` });
+      }
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   try {
     const result = await pool.query(
       "INSERT INTO VICTIM (victim_name, full_name, age, gender, phone_number, camp_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [victim_name, full_name || null, age || null, gender || null, phone_number || null, camp_id || null]
+      [victim_name, full_name || null, age || null, gender || null, phone_number || null, campId]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

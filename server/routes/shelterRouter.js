@@ -4,6 +4,6 @@ const { getInfo, updateInfo, addCamp } = require("../controllers/shelterControll
 
 shelterRouter.get("/shelter", getInfo);
 shelterRouter.post("/shelter", addCamp);
-shelterRouter.post("/shelter/:id", updateInfo);
+shelterRouter.put("/shelter/:id", updateInfo);
 
 module.exports = shelterRouter;

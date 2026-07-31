@@ -1,95 +1,139 @@
 import { useEffect, useState } from "react";
-import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, CircularProgress,
-} from "@mui/material";
+import { Box, Button, TextField, MenuItem } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
+
+import DataTable  from "../components/DataTable";
+import FormDialog from "../components/FormDialog";
+import PageHeader from "../components/PageHeader";
+import { getDistributions, createDistribution, getResources, getShelters, getVictims } from "../services/api";
+
+const columns = [
+  { key: "deployment_id", label: "ID",          render: (v) => <strong>{v}</strong> },
+  { key: "victim_id",     label: "Victim ID",   align: "right" },
+  { key: "resource_id",   label: "Resource ID", align: "right" },
+  { key: "camp_id",       label: "Camp ID",     align: "right" },
+  { key: "quantity_given",label: "Qty Given",   align: "right" },
+  { key: "deployment_by", label: "By" },
+  { key: "deployment_at", label: "Date",         render: (v) => v?.slice(0, 10) },
+];
+
+const empty = { victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" };
 
 export default function Distribution() {
-  const [rows, setRows]       = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen]       = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
-  const [form, setForm]       = useState({ victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" });
+  const [rows,      setRows]      = useState([]);
+  const [resources, setResources] = useState([]);
+  const [camps,     setCamps]     = useState([]);
+  const [victims,   setVictims]   = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [open,      setOpen]      = useState(false);
+  const [form,      setForm]      = useState(empty);
+  const [saving,    setSaving]    = useState(false);
+  const [error,     setError]     = useState("");
 
   const load = () => {
     setLoading(true);
-    axios.get("/api/distributions").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
+    getDistributions()
+      .then((r) => setRows(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getResources().then((r) => setResources(r.data)).catch(console.error);
+    getShelters().then((r) => setCamps(r.data)).catch(console.error);
+    getVictims().then((r) => setVictims(r.data)).catch(console.error);
+  }, []);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleClose  = () => { setOpen(false); setError(""); setForm(empty); };
 
   const handleSubmit = () => {
-    if (!form.resource_id || !form.quantity_given) { setError("Resource ID and quantity are required."); return; }
+    if (!form.resource_id || !form.quantity_given) {
+      setError("Resource and quantity are required.");
+      return;
+    }
     setSaving(true);
-    axios.post("/api/distributions", form)
-      .then(() => { setOpen(false); setForm({ victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" }); setError(""); load(); })
-      .catch(err => setError(err.response?.data?.error || "Failed to save."))
+    createDistribution(form)
+      .then(() => { handleClose(); load(); })
+      .catch((err) => {
+        const msg = err.response?.data?.error || err.message || "Failed to save.";
+        setError(msg);
+      })
       .finally(() => setSaving(false));
   };
 
-  if (loading) return (
-    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
-  );
-
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <Box>
-          <Typography variant="h4" fontWeight={700}>Distribution</Typography>
-          <Typography color="text.secondary">{rows.length} record{rows.length !== 1 ? "s" : ""}</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Record Distribution</Button>
-      </Box>
+      <PageHeader
+        title="Distribution"
+        subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Record Distribution
+          </Button>
+        }
+      />
 
-      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {["ID", "Victim ID", "Resource ID", "Camp ID", "Qty Given", "By", "Date"].map(h => <TableCell key={h}>{h}</TableCell>)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={7} align="center" sx={{ py: 6, color: "text.secondary" }}>No distribution records found.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.deployment_id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{row.deployment_id}</TableCell>
-                  <TableCell>{row.victim_id}</TableCell>
-                  <TableCell>{row.resource_id}</TableCell>
-                  <TableCell>{row.camp_id}</TableCell>
-                  <TableCell align="right">{row.quantity_given}</TableCell>
-                  <TableCell>{row.deployment_by}</TableCell>
-                  <TableCell>{row.deployment_at?.slice(0, 10)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <DataTable columns={columns} rows={rows} loading={loading} rowKey="deployment_id" emptyMsg="No distribution records found." />
 
-      <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Record Distribution</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            {error && <Typography color="error" variant="body2">{error}</Typography>}
-            <TextField label="Resource ID" name="resource_id" type="number" value={form.resource_id} onChange={handleChange} />
-            <TextField label="Quantity Given" name="quantity_given" type="number" value={form.quantity_given} onChange={handleChange} />
-            <TextField label="Camp ID (optional)" name="camp_id" type="number" value={form.camp_id} onChange={handleChange} />
-            <TextField label="Victim ID (optional)" name="victim_id" type="number" value={form.victim_id} onChange={handleChange} />
-            <TextField label="Deployed By" name="deployment_by" value={form.deployment_by} onChange={handleChange} />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
-        </DialogActions>
-      </Dialog>
+      <FormDialog
+        open={open}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        title="Record Distribution"
+        loading={saving}
+        error={error}
+      >
+        <TextField
+          select
+          label="Resource *"
+          name="resource_id"
+          value={form.resource_id}
+          onChange={handleChange}
+        >
+          <MenuItem value="">— Select resource —</MenuItem>
+          {resources.map((r) => (
+            <MenuItem key={r.resource_id} value={r.resource_id}>
+              {r.resource_name} (qty: {r.quantity})
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField label="Quantity Given *" name="quantity_given" type="number" value={form.quantity_given} onChange={handleChange} />
+
+        <TextField
+          select
+          label="Camp (optional)"
+          name="camp_id"
+          value={form.camp_id}
+          onChange={handleChange}
+        >
+          <MenuItem value="">— No camp —</MenuItem>
+          {camps.map((c) => (
+            <MenuItem key={c.camp_id} value={c.camp_id}>
+              {c.camp_name} (ID: {c.camp_id})
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          select
+          label="Victim (optional)"
+          name="victim_id"
+          value={form.victim_id}
+          onChange={handleChange}
+        >
+          <MenuItem value="">— No victim —</MenuItem>
+          {victims.map((v) => (
+            <MenuItem key={v.victim_id} value={v.victim_id}>
+              {v.victim_name} — {v.full_name} (ID: {v.victim_id})
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField label="Deployed By" name="deployment_by" value={form.deployment_by} onChange={handleChange} />
+      </FormDialog>
     </Box>
   );
 }

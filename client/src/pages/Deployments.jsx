@@ -1,95 +1,106 @@
 import { useEffect, useState } from "react";
-import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, CircularProgress,
-} from "@mui/material";
+import { Box, Button, TextField, Typography, MenuItem } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
+
+import DataTable  from "../components/DataTable";
+import FormDialog from "../components/FormDialog";
+import PageHeader from "../components/PageHeader";
+import { getDeployments, createDeployment, getDisasters } from "../services/api";
+
+const columns = [
+  { key: "volunteer_name",  label: "Volunteer",      render: (v) => <strong>{v}</strong> },
+  { key: "camp_name",       label: "Camp" },
+  { key: "location",        label: "Location" },
+  { key: "duration_days",   label: "Duration (days)", align: "right" },
+  { key: "timestamp_date",  label: "Start Date",      render: (v) => v?.slice(0, 10) },
+];
+
+const empty = { volunteer_name: "", duration_days: "", timestamp_date: "", area: "" };
 
 export default function Deployments() {
-  const [rows, setRows]       = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen]       = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
-  const [form, setForm]       = useState({ volunteer_name: "", duration_days: "", timestamp_date: "", area: "" });
+  const [rows,      setRows]      = useState([]);
+  const [disasters, setDisasters] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [open,      setOpen]      = useState(false);
+  const [form,      setForm]      = useState(empty);
+  const [saving,    setSaving]    = useState(false);
+  const [error,     setError]     = useState("");
 
   const load = () => {
     setLoading(true);
-    axios.get("/api/deployments").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
+    getDeployments()
+      .then((r) => setRows(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getDisasters().then((r) => setDisasters(r.data)).catch(console.error);
+  }, []);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleClose  = () => { setOpen(false); setError(""); setForm(empty); };
 
   const handleSubmit = () => {
     if (!form.volunteer_name) { setError("Volunteer name is required."); return; }
     setSaving(true);
-    axios.post("/api/deployments", form)
-      .then(() => { setOpen(false); setForm({ volunteer_name: "", duration_days: "", timestamp_date: "", area: "" }); setError(""); load(); })
-      .catch(err => setError(err.response?.data?.error || "Failed to save."))
+    createDeployment(form)
+      .then(() => { handleClose(); load(); })
+      .catch((err) => {
+        const msg = err.response?.data?.error || err.message || "Failed to save.";
+        setError(msg);
+      })
       .finally(() => setSaving(false));
   };
 
-  if (loading) return (
-    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
-  );
-
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <PageHeader
+        title="Deployments"
+        subtitle={`${rows.length} volunteer${rows.length !== 1 ? "s" : ""} deployed`}
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+            Add Deployment
+          </Button>
+        }
+      />
+
+      <DataTable columns={columns} rows={rows} loading={loading} rowKey="volunteer_id" emptyMsg="No deployments recorded." />
+
+      <FormDialog
+        open={open}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        title="Add Deployment"
+        loading={saving}
+        error={error}
+      >
+        <TextField label="Volunteer Name *" name="volunteer_name" value={form.volunteer_name} onChange={handleChange} />
+        <TextField label="Duration (days)"  name="duration_days"  type="number" value={form.duration_days} onChange={handleChange} />
+
+        <TextField
+          select
+          label="Disaster Area (optional)"
+          name="area"
+          value={form.area}
+          onChange={handleChange}
+        >
+          <MenuItem value="">— No area —</MenuItem>
+          {disasters.map((d) => (
+            <MenuItem key={d.area_id} value={d.area_id}>
+              {d.disaster_name} — {d.location} (ID: {d.area_id})
+            </MenuItem>
+          ))}
+        </TextField>
+
         <Box>
-          <Typography variant="h4" fontWeight={700}>Deployments</Typography>
-          <Typography color="text.secondary">{rows.length} volunteer{rows.length !== 1 ? "s" : ""} deployed</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+            Start Date
+          </Typography>
+          <TextField name="timestamp_date" type="date" value={form.timestamp_date} onChange={handleChange} />
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Deployment</Button>
-      </Box>
-
-      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {["Volunteer", "Camp", "Location", "Duration (days)", "Start Date"].map(h => <TableCell key={h}>{h}</TableCell>)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 6, color: "text.secondary" }}>No deployments recorded.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.volunteer_id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{row.volunteer_name}</TableCell>
-                  <TableCell>{row.camp_name}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell align="right">{row.duration_days}</TableCell>
-                  <TableCell>{row.timestamp_date?.slice(0, 10)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Add Deployment</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            {error && <Typography color="error" variant="body2">{error}</Typography>}
-            <TextField label="Volunteer Name" name="volunteer_name" value={form.volunteer_name} onChange={handleChange} />
-            <TextField label="Duration (days)" name="duration_days" type="number" value={form.duration_days} onChange={handleChange} />
-            <TextField label="Area ID" name="area" type="number" value={form.area} onChange={handleChange} helperText="Area ID from Disaster Areas" />
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Start Date</Typography>
-              <TextField name="timestamp_date" type="date" value={form.timestamp_date} onChange={handleChange} />
-            </Box>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
-        </DialogActions>
-      </Dialog>
+      </FormDialog>
     </Box>
   );
 }
