@@ -10,18 +10,30 @@ export default function Navbar() {
   const [time, setTime] = useState(new Date());
   const [activeDisasters, setActiveDisasters] = useState(0);
 
+  // Live clock
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(new Date());
     }, 1000);
+
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch live disaster count from backend
+  // Live disaster count
   useEffect(() => {
-    getDisasters()
-      .then((r) => setActiveDisasters(r.data.length))
-      .catch(() => setActiveDisasters(0));
+    const fetchDisasters = () => {
+      getDisasters()
+        .then((res) => setActiveDisasters(res.data.length))
+        .catch(() => setActiveDisasters(0));
+    };
+
+    // Initial load
+    fetchDisasters();
+
+    // Refresh every 2 seconds
+    const interval = setInterval(fetchDisasters, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const date = time.toLocaleDateString(undefined, {
@@ -45,7 +57,7 @@ export default function Navbar() {
         bgcolor: "#EAF1F8",
         color: "#0f172a",
         borderBottom: "1px solid #cbd5e1",
-        borderRadius: "0px",
+        borderRadius: 0,
       }}
     >
       <Toolbar
@@ -62,7 +74,7 @@ export default function Navbar() {
           <Typography
             sx={{
               mt: 1,
-              fontSize: 23,
+              fontSize: 22,
               fontWeight: 800,
               letterSpacing: "-0.5px",
               color: "#0f172a",
@@ -77,7 +89,6 @@ export default function Navbar() {
               fontSize: 14,
               color: "#64748b",
               fontWeight: 500,
-              mb: "1px",
             }}
           >
             Coordinating Emergency Response & Resource Distribution
