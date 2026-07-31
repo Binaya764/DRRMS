@@ -52,8 +52,8 @@ export default function Dashboard() {
         <Typography variant="h4" fontWeight={600}>
           Dashboard
         </Typography>
-        <Typography color="text.secondary">
-          Disaster Relief Resource Management System
+        <Typography sx={{ color: "#475569" }}>
+          Overview of active operations
         </Typography>
       </Box>
 
