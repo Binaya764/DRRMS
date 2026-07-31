@@ -9,8 +9,8 @@ import { getDisasters, getResources, getShelters } from "../services/api";
 export default function Dashboard() {
   const [disasters, setDisasters] = useState([]);
   const [resources, setResources] = useState([]);
-  const [shelters,  setShelters]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [shelters, setShelters] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([getDisasters(), getResources(), getShelters()])
@@ -25,21 +25,31 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   // Use current_population (the real DB column name)
-  const totalOccupancy = shelters.reduce((sum, s) => sum + (s.current_population || 0), 0);
-  const totalCapacity  = shelters.reduce((sum, s) => sum + (s.capacity || 0), 0);
+  const totalOccupancy = shelters.reduce(
+    (sum, s) => sum + (s.current_population || 0),
+    0,
+  );
+  const totalCapacity = shelters.reduce((sum, s) => sum + (s.capacity || 0), 0);
 
   return (
     <Box sx={{ width: "100%", p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700}>
+        <Typography variant="h4" fontWeight={600}>
           Dashboard
         </Typography>
         <Typography color="text.secondary">

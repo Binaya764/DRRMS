@@ -8,18 +8,30 @@ import PageHeader from "../components/PageHeader";
 import { getDisasters, createDisaster } from "../services/api";
 
 const severityColor = (s) =>
-  ({ Low: "info", Medium: "warning", High: "error", Critical: "error" }[s] || "default");
+  ({ Low: "info", Medium: "warning", High: "error", Critical: "error" })[s] ||
+  "default";
 
-const empty = { disaster_name: "", disaster_type: "", location: "", severity: "Medium" };
+const empty = {
+  disaster_name: "",
+  disaster_type: "",
+  location: "",
+  severity: "Medium",
+};
 
 const columns = [
-  { key: "disaster_name", label: "Disaster Name", render: (v) => <strong>{v}</strong> },
+  {
+    key: "disaster_name",
+    label: "Disaster Name",
+    render: (v) => <strong>{v}</strong>,
+  },
   { key: "disaster_type", label: "Type" },
-  { key: "location",      label: "Location" },
+  { key: "location", label: "Location" },
   {
     key: "severity",
     label: "Severity",
-    render: (v) => <Chip label={v || "Medium"} color={severityColor(v)} size="small" />,
+    render: (v) => (
+      <Chip label={v || "Medium"} color={severityColor(v)} size="small" />
+    ),
   },
   {
     key: "status",
@@ -29,12 +41,12 @@ const columns = [
 ];
 
 export default function DisasterAreas() {
-  const [rows,    setRows]    = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [open,    setOpen]    = useState(false);
-  const [form,    setForm]    = useState(empty);
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState("");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(empty);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -44,11 +56,18 @@ export default function DisasterAreas() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleClose = () => { setOpen(false); setError(""); setForm(empty); };
+  const handleClose = () => {
+    setOpen(false);
+    setError("");
+    setForm(empty);
+  };
 
   const handleSubmit = () => {
     if (!form.disaster_name || !form.location) {
@@ -57,7 +76,10 @@ export default function DisasterAreas() {
     }
     setSaving(true);
     createDisaster(form)
-      .then(() => { handleClose(); load(); })
+      .then(() => {
+        handleClose();
+        load();
+      })
       .catch((err) => setError(err.response?.data?.error || "Failed to save."))
       .finally(() => setSaving(false));
   };
@@ -68,7 +90,12 @@ export default function DisasterAreas() {
         title="Disaster Areas"
         subtitle={`${rows.length} active event${rows.length !== 1 ? "s" : ""}`}
         action={
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ mt: 1, mb: 1 }}
+          >
             Add Disaster
           </Button>
         }
@@ -90,10 +117,32 @@ export default function DisasterAreas() {
         loading={saving}
         error={error}
       >
-        <TextField label="Disaster Name *" name="disaster_name" value={form.disaster_name} onChange={handleChange} />
-        <TextField label="Type" name="disaster_type" value={form.disaster_type} onChange={handleChange} placeholder="Flood, Earthquake, Fire…" />
-        <TextField label="Location *" name="location" value={form.location} onChange={handleChange} />
-        <TextField label="Severity" name="severity" value={form.severity} onChange={handleChange} placeholder="Low / Medium / High / Critical" />
+        <TextField
+          label="Disaster Name *"
+          name="disaster_name"
+          value={form.disaster_name}
+          onChange={handleChange}
+        />
+        <TextField
+          label="Type"
+          name="disaster_type"
+          value={form.disaster_type}
+          onChange={handleChange}
+          placeholder="Flood, Earthquake, Fire…"
+        />
+        <TextField
+          label="Location *"
+          name="location"
+          value={form.location}
+          onChange={handleChange}
+        />
+        <TextField
+          label="Severity"
+          name="severity"
+          value={form.severity}
+          onChange={handleChange}
+          placeholder="Low / Medium / High / Critical"
+        />
       </FormDialog>
     </Box>
   );

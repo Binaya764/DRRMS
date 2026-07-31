@@ -2,33 +2,45 @@ import { useEffect, useState } from "react";
 import { Box, Button, TextField, MenuItem } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-import DataTable  from "../components/DataTable";
+import DataTable from "../components/DataTable";
 import FormDialog from "../components/FormDialog";
 import PageHeader from "../components/PageHeader";
-import { getDistributions, createDistribution, getResources, getShelters, getVictims } from "../services/api";
+import {
+  getDistributions,
+  createDistribution,
+  getResources,
+  getShelters,
+  getVictims,
+} from "../services/api";
 
 const columns = [
-  { key: "deployment_id", label: "ID",          render: (v) => <strong>{v}</strong> },
-  { key: "victim_id",     label: "Victim ID",   align: "right" },
-  { key: "resource_id",   label: "Resource ID", align: "right" },
-  { key: "camp_id",       label: "Camp ID",     align: "right" },
-  { key: "quantity_given",label: "Qty Given",   align: "right" },
+  { key: "deployment_id", label: "ID", render: (v) => <strong>{v}</strong> },
+  { key: "victim_id", label: "Victim ID", align: "right" },
+  { key: "resource_id", label: "Resource ID", align: "right" },
+  { key: "camp_id", label: "Camp ID", align: "right" },
+  { key: "quantity_given", label: "Qty Given", align: "right" },
   { key: "deployment_by", label: "By" },
-  { key: "deployment_at", label: "Date",         render: (v) => v?.slice(0, 10) },
+  { key: "deployment_at", label: "Date", render: (v) => v?.slice(0, 10) },
 ];
 
-const empty = { victim_id: "", resource_id: "", camp_id: "", quantity_given: "", deployment_by: "" };
+const empty = {
+  victim_id: "",
+  resource_id: "",
+  camp_id: "",
+  quantity_given: "",
+  deployment_by: "",
+};
 
 export default function Distribution() {
-  const [rows,      setRows]      = useState([]);
+  const [rows, setRows] = useState([]);
   const [resources, setResources] = useState([]);
-  const [camps,     setCamps]     = useState([]);
-  const [victims,   setVictims]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [open,      setOpen]      = useState(false);
-  const [form,      setForm]      = useState(empty);
-  const [saving,    setSaving]    = useState(false);
-  const [error,     setError]     = useState("");
+  const [camps, setCamps] = useState([]);
+  const [victims, setVictims] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(empty);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -40,13 +52,24 @@ export default function Distribution() {
 
   useEffect(() => {
     load();
-    getResources().then((r) => setResources(r.data)).catch(console.error);
-    getShelters().then((r) => setCamps(r.data)).catch(console.error);
-    getVictims().then((r) => setVictims(r.data)).catch(console.error);
+    getResources()
+      .then((r) => setResources(r.data))
+      .catch(console.error);
+    getShelters()
+      .then((r) => setCamps(r.data))
+      .catch(console.error);
+    getVictims()
+      .then((r) => setVictims(r.data))
+      .catch(console.error);
   }, []);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleClose  = () => { setOpen(false); setError(""); setForm(empty); };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleClose = () => {
+    setOpen(false);
+    setError("");
+    setForm(empty);
+  };
 
   const handleSubmit = () => {
     if (!form.resource_id || !form.quantity_given) {
@@ -55,9 +78,13 @@ export default function Distribution() {
     }
     setSaving(true);
     createDistribution(form)
-      .then(() => { handleClose(); load(); })
+      .then(() => {
+        handleClose();
+        load();
+      })
       .catch((err) => {
-        const msg = err.response?.data?.error || err.message || "Failed to save.";
+        const msg =
+          err.response?.data?.error || err.message || "Failed to save.";
         setError(msg);
       })
       .finally(() => setSaving(false));
@@ -69,13 +96,24 @@ export default function Distribution() {
         title="Distribution"
         subtitle={`${rows.length} record${rows.length !== 1 ? "s" : ""}`}
         action={
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ mt: 1, mb: 1 }}
+          >
             Record Distribution
           </Button>
         }
       />
 
-      <DataTable columns={columns} rows={rows} loading={loading} rowKey="deployment_id" emptyMsg="No distribution records found." />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        rowKey="deployment_id"
+        emptyMsg="No distribution records found."
+      />
 
       <FormDialog
         open={open}
@@ -100,7 +138,13 @@ export default function Distribution() {
           ))}
         </TextField>
 
-        <TextField label="Quantity Given *" name="quantity_given" type="number" value={form.quantity_given} onChange={handleChange} />
+        <TextField
+          label="Quantity Given *"
+          name="quantity_given"
+          type="number"
+          value={form.quantity_given}
+          onChange={handleChange}
+        />
 
         <TextField
           select
@@ -132,7 +176,12 @@ export default function Distribution() {
           ))}
         </TextField>
 
-        <TextField label="Deployed By" name="deployment_by" value={form.deployment_by} onChange={handleChange} />
+        <TextField
+          label="Deployed By"
+          name="deployment_by"
+          value={form.deployment_by}
+          onChange={handleChange}
+        />
       </FormDialog>
     </Box>
   );

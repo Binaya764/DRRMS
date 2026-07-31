@@ -53,7 +53,8 @@ export default function Navbar() {
         <Box>
           <Typography
             sx={{
-              fontSize: 26,
+              mt: 1,
+              fontSize: 24,
               fontWeight: 800,
               letterSpacing: "-0.5px",
               color: "#0f172a",
@@ -68,7 +69,7 @@ export default function Navbar() {
               fontSize: 14,
               color: "#64748b",
               fontWeight: 500,
-              mb: "3px",
+              mb: "1px",
             }}
           >
             Coordinating Emergency Response & Resource Distribution

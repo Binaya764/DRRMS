@@ -1,36 +1,52 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Button, Chip, TextField, Stack, LinearProgress, Typography,
-  Dialog, DialogTitle, DialogContent, DialogActions,
+  Box,
+  Button,
+  Chip,
+  TextField,
+  Stack,
+  LinearProgress,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
-import AddIcon  from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 
-import DataTable  from "../components/DataTable";
+import DataTable from "../components/DataTable";
 import FormDialog from "../components/FormDialog";
 import PageHeader from "../components/PageHeader";
 import { getShelters, createShelter, updateShelterPop } from "../services/api";
 
 const statusColor = (s) =>
-  ({ active: "success", full: "error", closed: "default" }[s?.toLowerCase()] || "info");
+  ({ active: "success", full: "error", closed: "default" })[s?.toLowerCase()] ||
+  "info";
 
-const emptyAdd = { camp_name: "", location: "", capacity: "", contact_number: "", status: "Active" };
+const emptyAdd = {
+  camp_name: "",
+  location: "",
+  capacity: "",
+  contact_number: "",
+  status: "Active",
+};
 
 export default function Camps() {
-  const [rows,     setRows]     = useState([]);
-  const [loading,  setLoading]  = useState(true);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Add camp dialog
-  const [addOpen,   setAddOpen]   = useState(false);
-  const [addForm,   setAddForm]   = useState(emptyAdd);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState(emptyAdd);
   const [addSaving, setAddSaving] = useState(false);
-  const [addError,  setAddError]  = useState("");
+  const [addError, setAddError] = useState("");
 
   // Edit population dialog
-  const [selected,    setSelected]    = useState(null);
-  const [population,  setPopulation]  = useState("");
-  const [editSaving,  setEditSaving]  = useState(false);
-  const [editError,   setEditError]   = useState("");
+  const [selected, setSelected] = useState(null);
+  const [population, setPopulation] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -40,17 +56,33 @@ export default function Camps() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   // ── Add Camp ─────────────────────────────────────────
-  const handleAddClose = () => { setAddOpen(false); setAddError(""); setAddForm(emptyAdd); };
+  const handleAddClose = () => {
+    setAddOpen(false);
+    setAddError("");
+    setAddForm(emptyAdd);
+  };
 
   const handleAddSubmit = () => {
-    if (!addForm.camp_name) { setAddError("Camp name is required."); return; }
+    if (!addForm.camp_name) {
+      setAddError("Camp name is required.");
+      return;
+    }
     setAddSaving(true);
     createShelter(addForm)
-      .then(() => { handleAddClose(); load(); })
-      .catch((err) => setAddError(err.response?.data?.error || err.message || "Failed to save."))
+      .then(() => {
+        handleAddClose();
+        load();
+      })
+      .catch((err) =>
+        setAddError(
+          err.response?.data?.error || err.message || "Failed to save.",
+        ),
+      )
       .finally(() => setAddSaving(false));
   };
 
@@ -61,36 +93,64 @@ export default function Camps() {
     setEditError("");
   };
 
-  const handleEditClose = () => { setSelected(null); setEditError(""); };
+  const handleEditClose = () => {
+    setSelected(null);
+    setEditError("");
+  };
 
   const handleEditSubmit = () => {
-    if (population === "" || isNaN(population)) { setEditError("Enter a valid number."); return; }
+    if (population === "" || isNaN(population)) {
+      setEditError("Enter a valid number.");
+      return;
+    }
     setEditSaving(true);
-    updateShelterPop(selected.camp_id, { current_population: Number(population) })
-      .then(() => { handleEditClose(); load(); })
-      .catch((err) => setEditError(err.response?.data?.error || "Failed to update."))
+    updateShelterPop(selected.camp_id, {
+      current_population: Number(population),
+    })
+      .then(() => {
+        handleEditClose();
+        load();
+      })
+      .catch((err) =>
+        setEditError(err.response?.data?.error || "Failed to update."),
+      )
       .finally(() => setEditSaving(false));
   };
 
   const columns = [
-    { key: "camp_name",          label: "Camp Name",  render: (v) => <strong>{v}</strong> },
-    { key: "location",           label: "Location" },
-    { key: "capacity",           label: "Capacity",   align: "right" },
+    {
+      key: "camp_name",
+      label: "Camp Name",
+      render: (v) => <strong>{v}</strong>,
+    },
+    { key: "location", label: "Location" },
+    { key: "capacity", label: "Capacity", align: "right" },
     { key: "current_population", label: "Population", align: "right" },
     {
       key: "current_population",
       label: "Fill %",
       render: (v, row) => {
-        const pct = row.capacity ? Math.min(100, Math.round((v / row.capacity) * 100)) : 0;
+        const pct = row.capacity
+          ? Math.min(100, Math.round((v / row.capacity) * 100))
+          : 0;
         return (
-          <Box display="flex" alignItems="center" gap={1.5} sx={{ minWidth: 140 }}>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1.5}
+            sx={{ minWidth: 140 }}
+          >
             <LinearProgress
               variant="determinate"
               value={pct}
               color={pct > 90 ? "error" : pct > 70 ? "warning" : "success"}
               sx={{ flex: 1, height: 8, borderRadius: 4 }}
             />
-            <Typography variant="caption" fontWeight={600} sx={{ minWidth: 32 }}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              sx={{ minWidth: 32 }}
+            >
               {pct}%
             </Typography>
           </Box>
@@ -100,7 +160,9 @@ export default function Camps() {
     {
       key: "status",
       label: "Status",
-      render: (v) => <Chip label={v || "Active"} color={statusColor(v)} size="small" />,
+      render: (v) => (
+        <Chip label={v || "Active"} color={statusColor(v)} size="small" />
+      ),
     },
     {
       key: "_actions",
@@ -125,13 +187,24 @@ export default function Camps() {
         title="Camps & Shelters"
         subtitle={`${rows.length} camp${rows.length !== 1 ? "s" : ""} registered`}
         action={
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setAddOpen(true)}
+            sx={{ mt: 1, mb: 1 }}
+          >
             Add Camp
           </Button>
         }
       />
 
-      <DataTable columns={columns} rows={rows} loading={loading} rowKey="camp_id" emptyMsg="No camps found." />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        rowKey="camp_id"
+        emptyMsg="No camps found."
+      />
 
       {/* Add Camp */}
       <FormDialog
@@ -142,22 +215,66 @@ export default function Camps() {
         loading={addSaving}
         error={addError}
       >
-        <TextField label="Camp Name *" name="camp_name" value={addForm.camp_name} onChange={(e) => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
-        <TextField label="Location"     name="location"       value={addForm.location}       onChange={(e) => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
-        <TextField label="Capacity"     name="capacity"       type="number" value={addForm.capacity}  onChange={(e) => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
-        <TextField label="Contact"      name="contact_number" value={addForm.contact_number} onChange={(e) => setAddForm({ ...addForm, [e.target.name]: e.target.value })} />
-        <TextField label="Status"       name="status"         value={addForm.status}         onChange={(e) => setAddForm({ ...addForm, [e.target.name]: e.target.value })} placeholder="Active / Full / Closed" />
+        <TextField
+          label="Camp Name *"
+          name="camp_name"
+          value={addForm.camp_name}
+          onChange={(e) =>
+            setAddForm({ ...addForm, [e.target.name]: e.target.value })
+          }
+        />
+        <TextField
+          label="Location"
+          name="location"
+          value={addForm.location}
+          onChange={(e) =>
+            setAddForm({ ...addForm, [e.target.name]: e.target.value })
+          }
+        />
+        <TextField
+          label="Capacity"
+          name="capacity"
+          type="number"
+          value={addForm.capacity}
+          onChange={(e) =>
+            setAddForm({ ...addForm, [e.target.name]: e.target.value })
+          }
+        />
+        <TextField
+          label="Contact"
+          name="contact_number"
+          value={addForm.contact_number}
+          onChange={(e) =>
+            setAddForm({ ...addForm, [e.target.name]: e.target.value })
+          }
+        />
+        <TextField
+          label="Status"
+          name="status"
+          value={addForm.status}
+          onChange={(e) =>
+            setAddForm({ ...addForm, [e.target.name]: e.target.value })
+          }
+          placeholder="Active / Full / Closed"
+        />
       </FormDialog>
 
       {/* Update Population */}
-      <Dialog open={!!selected} onClose={handleEditClose} maxWidth="xs" fullWidth>
+      <Dialog
+        open={!!selected}
+        onClose={handleEditClose}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle sx={{ fontWeight: 700 }}>
           Update Population — {selected?.camp_name}
         </DialogTitle>
         <DialogContent>
           <Box mt={1}>
             {editError && (
-              <Typography color="error" variant="body2" mb={1}>{editError}</Typography>
+              <Typography color="error" variant="body2" mb={1}>
+                {editError}
+              </Typography>
             )}
             <TextField
               label="Current Population"
@@ -170,8 +287,14 @@ export default function Camps() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={handleEditClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSubmit} disabled={editSaving}>
+          <Button variant="outlined" onClick={handleEditClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleEditSubmit}
+            disabled={editSaving}
+          >
             {editSaving ? "Saving…" : "Save"}
           </Button>
         </DialogActions>
