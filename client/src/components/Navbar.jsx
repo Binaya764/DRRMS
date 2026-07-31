@@ -4,16 +4,24 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { getDisasters } from "../services/api";
 
 export default function Navbar() {
   const [time, setTime] = useState(new Date());
+  const [activeDisasters, setActiveDisasters] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(new Date());
     }, 1000);
-
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch live disaster count from backend
+  useEffect(() => {
+    getDisasters()
+      .then((r) => setActiveDisasters(r.data.length))
+      .catch(() => setActiveDisasters(0));
   }, []);
 
   const date = time.toLocaleDateString(undefined, {
@@ -125,7 +133,7 @@ export default function Navbar() {
 
           <Chip
             icon={<WarningAmberIcon />}
-            label="3 Active Disasters"
+            label={`${activeDisasters} Active Disaster${activeDisasters !== 1 ? "s" : ""}`}
             sx={{
               bgcolor: "#fee2e2",
               color: "#b91c1c",
