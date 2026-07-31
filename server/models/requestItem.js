@@ -77,10 +77,10 @@ const updateRequestItem = async (serial, data) => {
 // Delete request item
 const deleteRequestItem = async (serial) => {
     return await pool.query(
-        "DELETE FROM REQUEST_ITEM
-        WHERE serial = $1
-        RETURNING *;",
-        [serial]
+    `DELETE FROM REQUEST_ITEM
+     WHERE serial = $1
+     RETURNING *;`,
+    [serial]
     );
 };
 
