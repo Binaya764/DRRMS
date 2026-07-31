@@ -68,6 +68,7 @@ export default function Sidebar() {
           background: "#1e293b",
           color: "#fff",
           borderRight: "none",
+          borderRadius: "0px",
         },
       }}
     >
