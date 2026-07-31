@@ -41,7 +41,14 @@ export default function FormDialog({
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth={maxWidth}>
       <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>{title}</DialogTitle>
 
-      <DialogContent sx={{ pt: 40 }}>
+      <DialogContent
+        sx={{
+          pt: 40,
+          "&.MuiDialogContent-root": {
+            pt: "20px !important",
+          },
+        }}
+      >
         <Stack spacing={2}>
           {error && (
             <Typography color="error" variant="body2">
