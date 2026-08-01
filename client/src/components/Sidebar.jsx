@@ -68,6 +68,7 @@ export default function Sidebar() {
           background: "#1e293b",
           color: "#fff",
           borderRight: "none",
+          borderRadius: "0px",
         },
       }}
     >
@@ -84,24 +85,18 @@ export default function Sidebar() {
         {!collapsed && (
           <Box>
             <Typography
-              variant="h6"
+              variant="h4"
               fontWeight={800}
               sx={{
                 color: "#fff",
                 letterSpacing: 1,
                 fontSize: 18,
+                mb: "17px",
+                mt: 1,
+                fontSize: 23,
               }}
             >
               DRRMS
-            </Typography>
-
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#94a3b8",
-              }}
-            >
-              Disaster Relief & Resource Management
             </Typography>
           </Box>
         )}

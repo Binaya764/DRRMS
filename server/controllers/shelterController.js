@@ -37,4 +37,28 @@ async function addCamp(req, res) {
   }
 }
 
-module.exports = { getInfo, updateInfo, addCamp };
+async function deleteCamp(req, res) {
+  const { id } = req.params;
+  try {
+    // Remove FK references first
+    await pool.query("UPDATE VICTIM SET camp_id = NULL WHERE camp_id = $1", [id]);
+    await pool.query("DELETE FROM DONOR_CAMP WHERE camp_id = $1", [id]);
+    await pool.query("DELETE FROM CAMP_DISASTER_AREA WHERE camp_id = $1", [id]);
+    await pool.query("DELETE FROM VOLUNTEER_CAMP WHERE camp_id = $1", [id]);
+    await pool.query("DELETE FROM USER_CAMP WHERE camp_id = $1", [id]);
+    await pool.query("DELETE FROM CAMP_REQUEST WHERE camp_id = $1", [id]);
+    await pool.query("UPDATE DEPLOYMENT_INFORMATION SET camp_id = NULL WHERE camp_id = $1", [id]);
+
+    const result = await pool.query(
+      "DELETE FROM CAMP WHERE camp_id = $1 RETURNING *",
+      [id]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Camp not found." });
+    res.json({ message: "Camp deleted successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { getInfo, updateInfo, addCamp, deleteCamp };

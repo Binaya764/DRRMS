@@ -1,8 +1,9 @@
-const {Router} = require("express");
+const { Router } = require("express");
 const disasterRouter = Router();
-const disasterController = require("../controllers/disasterController");
+const { getInfo, postInfo, deleteDisaster } = require("../controllers/disasterController");
 
-disasterRouter.get("/disaster",disasterController.getInfo);
-disasterRouter.post("/disaster", disasterController.postInfo);
+disasterRouter.get("/disaster", getInfo);
+disasterRouter.post("/disaster", postInfo);
+disasterRouter.delete("/disaster/:id", deleteDisaster);
 
 module.exports = disasterRouter;

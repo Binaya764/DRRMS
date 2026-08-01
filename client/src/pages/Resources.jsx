@@ -1,61 +1,59 @@
 import { useEffect, useState } from "react";
-import {
-  Box, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, CircularProgress, Chip,
-} from "@mui/material";
-import axios from "axios";
+import { Box, Chip } from "@mui/material";
+
+import DataTable from "../components/DataTable";
+import PageHeader from "../components/PageHeader";
+import { getResources } from "../services/api";
+
+const columns = [
+  {
+    key: "resource_name",
+    label: "Resource Name",
+    render: (v) => <strong>{v}</strong>,
+  },
+  { key: "category", label: "Category" },
+  { key: "quantity", label: "Quantity", align: "right" },
+  {
+    key: "quantity",
+    label: "Availability",
+    render: (v) => (
+      <Chip
+        label={v > 100 ? "Sufficient" : v > 50 ? "Moderate" : "Low"}
+        color={v > 100 ? "success" : v > 50 ? "warning" : "error"}
+        size="small"
+      />
+    ),
+  },
+];
 
 export default function Resources() {
-  const [rows, setRows]       = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("/api/resource").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
+    getResources()
+      .then((r) => setRows(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
-
-  if (loading) return (
-    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-      <CircularProgress />
-    </Box>
-  );
 
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700}>Resources</Typography>
-        <Typography color="text.secondary">{rows.length} resource{rows.length !== 1 ? "s" : ""} available</Typography>
+      <Box sx={{ mb: 1 }}>
+        <PageHeader
+          sx={{ mb: 2 }}
+          title="Resources"
+          subtitle={`${rows.length} resource${rows.length !== 1 ? "s" : ""} available`}
+        />
       </Box>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {["Resource Name", "Category", "Quantity", "Availability"].map(h => (
-                  <TableCell key={h}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: "text.secondary" }}>No resources found.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.resource_id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{row.resource_name}</TableCell>
-                  <TableCell>{row.category}</TableCell>
-                  <TableCell align="right">{row.quantity}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.quantity > 100 ? "Sufficient" : row.quantity > 50 ? "Moderate" : "Low"}
-                      color={row.quantity > 100 ? "success" : row.quantity > 50 ? "warning" : "error"}
-                      size="small" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <DataTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        rowKey="resource_id"
+        emptyMsg="No resources found."
+      />
     </Box>
   );
 }

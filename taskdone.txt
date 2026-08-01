@@ -1,0 +1,52 @@
+TASKS COMPLETED
+
+* Reset the local Git repository to match the latest remote `main` branch.
+
+  ```bash
+  git fetch origin
+  git reset --hard origin/main
+  ```
+
+* Executed the PostgreSQL database schema and verified all required tables and indexes were created.
+
+  ```powershell
+  & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d drrms -h localhost -f server/schema.sql
+  ```
+
+* Resolved the `psql` command not recognized issue by using the full path to `psql.exe`.
+
+* Verified successful PostgreSQL database connection from the backend.
+
+  ```
+  Connected to Postgres
+  ```
+
+* Started the backend server.
+
+  ```bash
+  npm run server
+  ```
+
+  * Server running on: http://localhost:3000
+
+* Started the React frontend using Vite.
+
+  ```bash
+  npm run client
+  ```
+
+  * Frontend running on: http://localhost:5173
+
+* Ran the complete DRRMS application simultaneously.
+
+  ```bash
+  npm run dev
+  ```
+
+* Verified successful integration of:
+
+  * PostgreSQL Database
+  * Node.js/Express Backend
+  * React + Vite Frontend
+
+* Confirmed the application is fully operational and ready for further development and testing.

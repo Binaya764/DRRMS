@@ -1,91 +1,329 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, Chip, CircularProgress,
+  Box,
+  Button,
+  Chip,
+  TextField,
+  MenuItem,
+  IconButton,
+  Tooltip,
+  Stack,
+  Typography,
+  Divider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
+import DeleteIcon from "@mui/icons-material/Delete";
+import RemoveIcon from "@mui/icons-material/Remove";
 
-const priorityColor = (p) => ({ High: "error", Medium: "warning", Low: "info", EMERGENCY: "error" }[p] || "default");
-const statusColor   = (s) => ({ Pending: "warning", Approved: "success", Completed: "info", Rejected: "error" }[s] || "default");
+import DataTable from "../components/DataTable";
+import FormDialog from "../components/FormDialog";
+import ConfirmDelete from "../components/ConfirmDelete";
+import PageHeader from "../components/PageHeader";
+import {
+  getRequests,
+  createRequest,
+  deleteRequest,
+  getInventory,
+} from "../services/api";
+
+const priorityColor = (p) =>
+  ({ High: "error", Medium: "warning", Low: "info", EMERGENCY: "error" })[p] ||
+  "default";
+const statusColor = (s) =>
+  ({
+    Pending: "warning",
+    Approved: "success",
+    Completed: "info",
+    Rejected: "error",
+  })[s] || "default";
+
+const emptyForm = { status: "Pending", priority_level: "Medium" };
+const emptyItem = { resource_id: "", quantity_requested: "" };
 
 export default function Requests() {
-  const [rows, setRows]       = useState([]);
+  const [rows, setRows] = useState([]);
+  const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen]       = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
-  const [form, setForm]       = useState({ status: "Pending", priority_level: "Medium" });
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [items, setItems] = useState([{ ...emptyItem }]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
-    axios.get("/api/requests").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
+    getRequests()
+      .then((r) => setRows(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    load();
+    getInventory()
+      .then((r) => setResources(r.data))
+      .catch(console.error);
+  }, []);
 
+  // ── Form handlers ──────────────────────────────────────
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleClose = () => {
+    setOpen(false);
+    setError("");
+    setForm(emptyForm);
+    setItems([{ ...emptyItem }]);
+  };
+
+  // ── Item row handlers ──────────────────────────────────
+  const handleItemChange = (index, field, value) => {
+    const updated = items.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item,
+    );
+    setItems(updated);
+  };
+
+  const addItemRow = () => setItems([...items, { ...emptyItem }]);
+
+  const removeItemRow = (index) => {
+    if (items.length === 1) return; // keep at least one row
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  // ── Submit ─────────────────────────────────────────────
   const handleSubmit = () => {
+    const validItems = items.filter(
+      (i) => i.resource_id && i.quantity_requested,
+    );
+    if (validItems.length === 0) {
+      setError("Add at least one item with a resource and quantity.");
+      return;
+    }
     setSaving(true);
-    axios.post("/api/requests", form)
-      .then(() => { setOpen(false); setForm({ status: "Pending", priority_level: "Medium" }); setError(""); load(); })
-      .catch(err => setError(err.response?.data?.error || "Failed to save."))
+    createRequest({ ...form, items: validItems })
+      .then(() => {
+        handleClose();
+        load();
+      })
+      .catch((err) =>
+        setError(err.response?.data?.error || err.message || "Failed to save."),
+      )
       .finally(() => setSaving(false));
   };
 
-  if (loading) return (
-    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
-  );
+  // ── Delete ─────────────────────────────────────────────
+  const handleDelete = () => {
+    setDeleting(true);
+    deleteRequest(deleteTarget.request_id)
+      .then(() => {
+        setDeleteTarget(null);
+        load();
+      })
+      .catch(console.error)
+      .finally(() => setDeleting(false));
+  };
+
+  // ── Table columns ──────────────────────────────────────
+  const columns = [
+    { key: "request_id", label: "ID", render: (v) => <strong>#{v}</strong> },
+    { key: "timestamp", label: "Date", render: (v) => v?.slice(0, 10) },
+    {
+      key: "priority_level",
+      label: "Priority",
+      render: (v) => <Chip label={v} color={priorityColor(v)} size="small" />,
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (v) => <Chip label={v} color={statusColor(v)} size="small" />,
+    },
+    {
+      key: "items",
+      label: "Requested Items",
+      render: (items) => {
+        if (!items || items.length === 0)
+          return (
+            <Typography variant="body2" color="text.disabled">
+              —
+            </Typography>
+          );
+        return (
+          <Stack spacing={0.5}>
+            {items.map((item, i) => (
+              <Chip
+                key={i}
+                label={`${item.resource_name || `Resource #${item.resource_id}`} × ${item.quantity_requested}`}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+            ))}
+          </Stack>
+        );
+      },
+    },
+    {
+      key: "_actions",
+      label: "",
+      render: (_, row) => (
+        <Tooltip title="Delete">
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setDeleteTarget(row)}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  ];
 
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <Box>
-          <Typography variant="h4" fontWeight={700}>Resource Requests</Typography>
-          <Typography color="text.secondary">{rows.length} request{rows.length !== 1 ? "s" : ""}</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>New Request</Button>
-      </Box>
+      <PageHeader
+        title="Resource Requests"
+        subtitle={`${rows.length} request${rows.length !== 1 ? "s" : ""}`}
+        action={
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            New Request
+          </Button>
+        }
+      />
 
-      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {["Request ID", "Date", "Priority", "Status"].map(h => <TableCell key={h}>{h}</TableCell>)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6, color: "text.secondary" }}>No requests found.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.request_id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>#{row.request_id}</TableCell>
-                  <TableCell>{row.timestamp?.slice(0, 10)}</TableCell>
-                  <TableCell><Chip label={row.priority_level} color={priorityColor(row.priority_level)} size="small" /></TableCell>
-                  <TableCell><Chip label={row.status} color={statusColor(row.status)} size="small" /></TableCell>
-                </TableRow>
+      <DataTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        rowKey="request_id"
+        emptyMsg="No requests found."
+      />
+
+      {/* New Request Dialog */}
+      <FormDialog
+        open={open}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        title="New Resource Request"
+        submitLabel="Submit Request"
+        loading={saving}
+        error={error}
+        maxWidth="md"
+      >
+        {/* Priority and Status */}
+        <Stack direction="row" spacing={2}>
+          <TextField
+            select
+            label="Priority"
+            name="priority_level"
+            value={form.priority_level}
+            onChange={handleChange}
+            sx={{ flex: 1 }}
+          >
+            {["Low", "Medium", "High", "EMERGENCY"].map((p) => (
+              <MenuItem key={p} value={p}>
+                {p}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Status"
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+            sx={{ flex: 1 }}
+          >
+            {["Pending", "Approved", "Completed", "Rejected"].map((s) => (
+              <MenuItem key={s} value={s}>
+                {s}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+
+        <Divider>
+          <Typography variant="caption" color="text.secondary">
+            Requested Items
+          </Typography>
+        </Divider>
+
+        {/* Item rows */}
+        {items.map((item, index) => (
+          <Stack key={index} direction="row" spacing={1.5} alignItems="center">
+            <TextField
+              select
+              label="Resource *"
+              value={item.resource_id}
+              onChange={(e) =>
+                handleItemChange(index, "resource_id", e.target.value)
+              }
+              sx={{ flex: 2 }}
+            >
+              <MenuItem value="">— Select resource —</MenuItem>
+              {resources.map((r) => (
+                <MenuItem key={r.resource_id} value={r.resource_id}>
+                  {r.resource_name} ({r.category}) — stock: {r.quantity}
+                </MenuItem>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+            </TextField>
 
-      <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>New Request</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            {error && <Typography color="error" variant="body2">{error}</Typography>}
-            <TextField label="Priority" name="priority_level" value={form.priority_level} onChange={handleChange} placeholder="Low / Medium / High / EMERGENCY" />
-            <TextField label="Status" name="status" value={form.status} onChange={handleChange} placeholder="Pending / Approved / Completed / Rejected" />
+            <TextField
+              label="Quantity *"
+              type="number"
+              value={item.quantity_requested}
+              onChange={(e) =>
+                handleItemChange(index, "quantity_requested", e.target.value)
+              }
+              sx={{ flex: 1 }}
+              inputProps={{ min: 1 }}
+            />
+
+            <Tooltip title="Remove item">
+              <span>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => removeItemRow(index)}
+                  disabled={items.length === 1}
+                >
+                  <RemoveIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saving}>{saving ? "Saving..." : "Submit"}</Button>
-        </DialogActions>
-      </Dialog>
+        ))}
+
+        {/* Add another item */}
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={addItemRow}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          Add Another Item
+        </Button>
+      </FormDialog>
+
+      {/* Confirm Delete */}
+      <ConfirmDelete
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Request?"
+        message={`Request #${deleteTarget?.request_id} and all its items will be permanently removed.`}
+      />
     </Box>
   );
 }

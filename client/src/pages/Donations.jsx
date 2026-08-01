@@ -1,97 +1,198 @@
 import { useEffect, useState } from "react";
 import {
-  Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, Stack, CircularProgress,
+  Box,
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+import DataTable from "../components/DataTable";
+import FormDialog from "../components/FormDialog";
+import ConfirmDelete from "../components/ConfirmDelete";
+import PageHeader from "../components/PageHeader";
+import { getDonations, createDonation, deleteDonation } from "../services/api";
+
+const empty = {
+  amount: "",
+  cash_amount: "",
+  currency: "NPR",
+  donation_date: "",
+  remarks: "",
+};
 
 export default function Donations() {
-  const [rows, setRows]       = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen]       = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
-  const [form, setForm]       = useState({ amount: "", cash_amount: "", currency: "NPR", donation_date: "", remarks: "" });
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(empty);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
-    axios.get("/api/donations").then(r => setRows(r.data)).catch(console.error).finally(() => setLoading(false));
+    getDonations()
+      .then((r) => setRows(r.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleClose = () => {
+    setOpen(false);
+    setError("");
+    setForm(empty);
+  };
 
   const handleSubmit = () => {
-    if (!form.amount) { setError("Amount is required."); return; }
+    if (!form.amount) {
+      setError("Amount is required.");
+      return;
+    }
     setSaving(true);
-    axios.post("/api/donations", form)
-      .then(() => { setOpen(false); setForm({ amount: "", cash_amount: "", currency: "NPR", donation_date: "", remarks: "" }); setError(""); load(); })
-      .catch(err => setError(err.response?.data?.error || "Failed to save."))
+    createDonation(form)
+      .then(() => {
+        handleClose();
+        load();
+      })
+      .catch((err) =>
+        setError(err.response?.data?.error || err.message || "Failed to save."),
+      )
       .finally(() => setSaving(false));
   };
 
-  if (loading) return (
-    <Box sx={{ height: "70vh", display: "flex", justifyContent: "center", alignItems: "center" }}><CircularProgress /></Box>
-  );
+  const handleDelete = () => {
+    setDeleting(true);
+    deleteDonation(deleteTarget.donation_id)
+      .then(() => {
+        setDeleteTarget(null);
+        load();
+      })
+      .catch(console.error)
+      .finally(() => setDeleting(false));
+  };
+
+  const columns = [
+    { key: "donation_id", label: "ID", render: (v) => <strong>{v}</strong> },
+    { key: "amount", label: "Amount", align: "right" },
+    { key: "cash_amount", label: "Cash Amount", align: "right" },
+    { key: "currency", label: "Currency" },
+    { key: "donation_date", label: "Date", render: (v) => v?.slice(0, 10) },
+    { key: "remarks", label: "Remarks" },
+    {
+      key: "_actions",
+      label: "",
+      render: (_, row) => (
+        <Tooltip title="Delete">
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setDeleteTarget(row)}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  ];
 
   return (
     <Box sx={{ width: "100%", p: 3 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <PageHeader
+        title="Donations"
+        subtitle={`${rows.length} donation${rows.length !== 1 ? "s" : ""} recorded`}
+        action={
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
+            sx={{ mb: 1, mt: 1 }}
+          >
+            Add Donation
+          </Button>
+        }
+      />
+
+      <DataTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        rowKey="donation_id"
+        emptyMsg="No donations recorded."
+      />
+
+      <FormDialog
+        open={open}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        title="Add Donation"
+        loading={saving}
+        error={error}
+      >
+        <TextField
+          label="Total Amount *"
+          name="amount"
+          type="number"
+          value={form.amount}
+          onChange={handleChange}
+        />
+        <TextField
+          label="Cash Amount"
+          name="cash_amount"
+          type="number"
+          value={form.cash_amount}
+          onChange={handleChange}
+        />
+        <TextField
+          label="Currency"
+          name="currency"
+          value={form.currency}
+          onChange={handleChange}
+          placeholder="NPR, USD, INR"
+        />
         <Box>
-          <Typography variant="h4" fontWeight={700}>Donations</Typography>
-          <Typography color="text.secondary">{rows.length} donation{rows.length !== 1 ? "s" : ""} recorded</Typography>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mb: 0.5, display: "block" }}
+          >
+            Donation Date
+          </Typography>
+          <TextField
+            name="donation_date"
+            type="date"
+            value={form.donation_date}
+            onChange={handleChange}
+          />
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>Add Donation</Button>
-      </Box>
+        <TextField
+          label="Remarks"
+          name="remarks"
+          value={form.remarks}
+          onChange={handleChange}
+          multiline
+          rows={2}
+        />
+      </FormDialog>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {["ID", "Amount", "Cash Amount", "Currency", "Date", "Remarks"].map(h => <TableCell key={h}>{h}</TableCell>)}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>No donations recorded.</TableCell></TableRow>
-              ) : rows.map(row => (
-                <TableRow key={row.donation_id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{row.donation_id}</TableCell>
-                  <TableCell align="right">{row.amount}</TableCell>
-                  <TableCell align="right">{row.cash_amount}</TableCell>
-                  <TableCell>{row.currency}</TableCell>
-                  <TableCell>{row.donation_date?.slice(0, 10)}</TableCell>
-                  <TableCell>{row.remarks}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      <Dialog open={open} onClose={() => { setOpen(false); setError(""); }} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>Add Donation</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            {error && <Typography color="error" variant="body2">{error}</Typography>}
-            <TextField label="Total Amount" name="amount" type="number" value={form.amount} onChange={handleChange} />
-            <TextField label="Cash Amount" name="cash_amount" type="number" value={form.cash_amount} onChange={handleChange} />
-            <TextField label="Currency" name="currency" value={form.currency} onChange={handleChange} placeholder="NPR, USD, INR" />
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>Donation Date</Typography>
-              <TextField name="donation_date" type="date" value={form.donation_date} onChange={handleChange} />
-            </Box>
-            <TextField label="Remarks" name="remarks" value={form.remarks} onChange={handleChange} multiline rows={2} />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button variant="outlined" onClick={() => { setOpen(false); setError(""); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDelete
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Donation?"
+        message={`Donation #${deleteTarget?.donation_id} (${deleteTarget?.currency} ${deleteTarget?.amount}) will be permanently removed.`}
+      />
     </Box>
   );
 }
